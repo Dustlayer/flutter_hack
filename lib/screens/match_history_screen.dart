@@ -2,9 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:routing_demo/components/match_history_list.dart';
-import 'package:routing_demo/models/match_history_item.dart';
-import 'package:routing_demo/models/match_history_manager.dart';
+import 'package:flutter_hack/components/match_history_list.dart';
+import 'package:flutter_hack/models/match_history_item.dart';
+import 'package:flutter_hack/models/match_history_manager.dart';
 import 'package:uuid/uuid.dart';
 
 import '../components/match_history_list.dart';
