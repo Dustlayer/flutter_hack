@@ -1,49 +1,65 @@
+import 'package:beamer/beamer.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_hack/screens/match_history_screen.dart';
+import 'package:provider/provider.dart';
 
 import 'models/models.dart';
+import 'navigation/page_routes.dart';
+import 'screens/screens.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
+  final routerDelegate = BeamerDelegate(
+    locationBuilder: RoutesLocationBuilder(
+      routes: {
+        PageRoutes.home: (context, state, data) => HomeScreen(),
+        PageRoutes.leaderboard: (context, state, data) => LeaderboardScreen(),
+        // '/play': (context, state, data) => PlayScreen(),
+        PageRoutes.singleplayer: (context, state, data) =>
+            PlaySingleplayerScreen(),
+        PageRoutes.multiplayer: (context, state, data) =>
+            PlayMultiplayerScreen(),
+        PageRoutes.multiplayerGame: (context, state, data) =>
+            PlayMultiplayerScreen(
+              gameId: state.pathParameters['gameId'],
+            ),
+      },
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.cyan,
-      ),
-      home: MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (context) => MatchHistoryManager()),
-        ],
-        child: const MyHomePage(title: 'Flutter Demo Home Page'),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => MatchHistoryManager()),
+      ],
+      child: MaterialApp.router(
+        title: 'Flutter Puzzle Hack',
+        theme: ThemeData(
+          primarySwatch: Colors.green,
+        ),
+        routerDelegate: routerDelegate,
+        routeInformationParser: BeamerParser(),
+        backButtonDispatcher:
+            BeamerBackButtonDispatcher(delegate: routerDelegate),
       ),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+class MyHomePage extends StatelessWidget {
+  MyHomePage({Key? key}) : super(key: key);
 
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text('Test text'),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
