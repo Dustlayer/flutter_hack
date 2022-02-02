@@ -306,11 +306,6 @@ class BlockButton extends StatelessWidget {
       child: Listener(
         onPointerSignal: (pointerSignal) {
           if (pointerSignal is PointerScrollEvent) {
-            bool isShiftPressed =
-                Provider.of<KeyboardMetaKeysManager>(context, listen: false)
-                    .isShiftPressed;
-            print(
-                'Scrolled, ScrollDelta: ${pointerSignal.scrollDelta.direction}, ShiftPressed: $isShiftPressed');
             onScroll(pointerSignal.scrollDelta.direction);
           }
         },

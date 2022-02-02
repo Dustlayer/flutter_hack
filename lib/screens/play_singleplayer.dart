@@ -45,6 +45,7 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen>
     super.dispose();
   }
 
+  @override
   Widget build(BuildContext context) {
     _nodeAttachment.reparent();
     return Scaffold(
@@ -74,6 +75,95 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen>
           ),
         ],
       ),
+    );
+  }
+}
+
+class TestStack extends StatefulWidget {
+  const TestStack({Key? key}) : super(key: key);
+
+  @override
+  _TestStackState createState() => _TestStackState();
+}
+
+class _TestStackState extends State<TestStack> with TickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    duration: const Duration(seconds: 2),
+    vsync: this,
+  )..repeat(reverse: true);
+
+  int width = 300;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+            border: Border.all(
+          color: Colors.amber,
+          width: 5,
+        )),
+        child: AspectRatio(
+          aspectRatio: 1,
+          child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              final Size biggest = constraints.biggest;
+              final double width1_3 = biggest.width / 3;
+              final double height1_3 = biggest.height / 3;
+              return Stack(
+                fit: StackFit.expand,
+                clipBehavior: Clip.hardEdge,
+                children: List.generate(
+                  9,
+                  (index) {
+                    return Positioned(
+                      top: index ~/ 3 * height1_3,
+                      bottom: (2 - index ~/ 3) * height1_3,
+                      left: index % 3 * width1_3,
+                      right: (2 - index % 3) * width1_3,
+                      child: TestCubeTile(index: index),
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class TestCubeTile extends StatelessWidget {
+  static const List<Color> colors = [
+    Colors.blue,
+    Colors.red,
+    Colors.green,
+    Colors.lime,
+    Colors.brown,
+    Colors.amberAccent,
+    Colors.lightGreenAccent,
+    Colors.lightBlueAccent,
+    Colors.cyan,
+  ];
+  final int index;
+  const TestCubeTile({Key? key, required this.index}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: colors[index],
+        border: Border.all(width: 2, color: colors[index]),
+      ),
+      alignment: Alignment.center,
+      child: Text(index.toString()),
     );
   }
 }

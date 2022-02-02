@@ -23,6 +23,7 @@ class MyApp extends StatelessWidget {
         // '/play': (context, state, data) => PlayScreen(),
         PageRoutes.singleplayer: (context, state, data) =>
             PlaySingleplayerScreen(),
+        // TestStack(),
         // CubeTestWidget(Cube()),
         PageRoutes.multiplayer: (context, state, data) =>
             PlayMultiplayerScreen(),
