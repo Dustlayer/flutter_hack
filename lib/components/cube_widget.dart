@@ -293,7 +293,7 @@ class _CubeWidgetState extends State<CubeWidget> {
 }
 
 class BlockButton extends StatelessWidget {
-  final Function(double scrollDirection) onScroll; // tmp
+  final Function(double scrollDirection) onScroll;
   final Block _block;
 
   const BlockButton(this._block, {Key? key, required this.onScroll})

@@ -1,5 +1,5 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hack/components/cube_widget.dart';
 import 'package:flutter_hack/models/cube.dart';
 import 'package:flutter_hack/models/keyboard_meta_keys_manager.dart';
 import 'package:provider/provider.dart';
@@ -52,7 +52,14 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen>
       body: Column(
         children: [
           const Spacer(flex: 1),
-          Expanded(flex: 4, child: CubeWidget(cube)),
+          // Expanded(flex: 4, child: CubeWidget(cube)),
+          Expanded(
+              flex: 4,
+              child: Container(
+                  alignment: Alignment.center,
+                  decoration:
+                      BoxDecoration(border: Border.all(color: Colors.red)),
+                  child: TestStack(cube: cube))),
           const Spacer(flex: 1),
           Expanded(
             flex: 1,
@@ -80,7 +87,8 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen>
 }
 
 class TestStack extends StatefulWidget {
-  const TestStack({Key? key}) : super(key: key);
+  final Cube cube;
+  const TestStack({Key? key, required this.cube}) : super(key: key);
 
   @override
   _TestStackState createState() => _TestStackState();
@@ -92,16 +100,41 @@ class _TestStackState extends State<TestStack> with TickerProviderStateMixin {
     vsync: this,
   )..repeat(reverse: true);
 
-  int width = 300;
-
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
 
+  void _handleScroll(double direction, int rowIndex, int columnIndex) {
+    bool isShiftPressed =
+        Provider.of<KeyboardMetaKeysManager>(context, listen: false)
+            .isShiftPressed;
+    bool scrolledUp = direction > 0 ? true : false;
+    if (isShiftPressed && scrolledUp) {
+      setState(() {
+        widget.cube.turnRowRight(rowIndex);
+      });
+    } else if (isShiftPressed && !scrolledUp) {
+      setState(() {
+        widget.cube.turnRowLeft(rowIndex);
+      });
+    } else if (!isShiftPressed && scrolledUp) {
+      setState(() {
+        widget.cube.turnColumnDown(columnIndex);
+      });
+    } else if (!isShiftPressed && !scrolledUp) {
+      setState(() {
+        widget.cube.turnColumnUp(columnIndex);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final int cubeWidth = widget.cube.width;
+    final int cubeHeight = widget.cube.height;
+    const int animationDuration = 175;
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -114,23 +147,79 @@ class _TestStackState extends State<TestStack> with TickerProviderStateMixin {
           child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
               final Size biggest = constraints.biggest;
-              final double width1_3 = biggest.width / 3;
-              final double height1_3 = biggest.height / 3;
+              // 1/x the width, dynamically from the cube height / width
+              final double width1_x = biggest.width / cubeWidth;
+              final double height1_x = biggest.height / cubeHeight;
               return Stack(
-                fit: StackFit.expand,
-                clipBehavior: Clip.hardEdge,
+                clipBehavior: Clip.antiAlias,
                 children: List.generate(
-                  9,
+                  cubeWidth * cubeHeight,
                   (index) {
-                    return Positioned(
-                      top: index ~/ 3 * height1_3,
-                      bottom: (2 - index ~/ 3) * height1_3,
-                      left: index % 3 * width1_3,
-                      right: (2 - index % 3) * width1_3,
-                      child: TestCubeTile(index: index),
+                    final int indexRow = index ~/ cubeWidth;
+                    final int indexColumn = index % cubeWidth;
+                    final Block block =
+                        widget.cube.front.blocks[indexRow][indexColumn];
+                    return AnimatedPositioned(
+                      key: ValueKey(block),
+                      top: indexRow * height1_x,
+                      bottom: (cubeHeight - 1 - indexRow) * height1_x,
+                      left: indexColumn * width1_x,
+                      right: (cubeWidth - 1 - indexColumn) * width1_x,
+                      duration: const Duration(milliseconds: animationDuration),
+                      child: TestCubeTile(block,
+                          onScroll: (double direction) =>
+                              _handleScroll(direction, indexRow, indexColumn)),
                     );
                   },
-                ),
+                )..addAll(
+                    List.generate(
+                      2 * cubeWidth + 2 * cubeWidth,
+                      (index) {
+                        // generate Tiles outside Bounds of cube
+                        Block block = Block("Dummy-ID", 0);
+                        int indexRow = -1;
+                        int indexColumn = -1;
+                        if (index ~/ cubeWidth == 0) {
+                          // in row above first row
+                          indexRow = -1;
+                          indexColumn = index % cubeWidth;
+                          block = widget.cube.front.top.blocks[cubeHeight - 1]
+                              [indexColumn];
+                        } else if (index < cubeWidth + 2 * cubeHeight) {
+                          // left and right side outside of cube
+                          int normalizedIndex = index - cubeWidth;
+                          indexRow = normalizedIndex ~/ 2;
+                          indexColumn =
+                              normalizedIndex % 2 == 0 ? -1 : cubeWidth;
+                          block = indexColumn == -1
+                              ? widget.cube.front.left.blocks[indexRow]
+                                  [cubeWidth - 1]
+                              : widget.cube.front.right.blocks[indexRow][0];
+                        } else {
+                          // row below cube
+                          int normalizedIndex =
+                              index - cubeWidth - 2 * cubeHeight;
+                          indexRow = cubeHeight;
+                          indexColumn = normalizedIndex % cubeWidth;
+                          block =
+                              widget.cube.front.bottom.blocks[0][indexColumn];
+                        }
+                        return AnimatedPositioned(
+                          key: ValueKey(block),
+                          duration:
+                              const Duration(milliseconds: animationDuration),
+                          top: indexRow * height1_x,
+                          bottom: (cubeHeight - 1 - indexRow) * height1_x,
+                          left: indexColumn * width1_x,
+                          right: (cubeWidth - 1 - indexColumn) * width1_x,
+                          child: TestCubeTile(
+                            block,
+                            onScroll: (double direction) {},
+                          ),
+                        );
+                      },
+                    ),
+                  ),
               );
             },
           ),
@@ -141,29 +230,29 @@ class _TestStackState extends State<TestStack> with TickerProviderStateMixin {
 }
 
 class TestCubeTile extends StatelessWidget {
-  static const List<Color> colors = [
-    Colors.blue,
-    Colors.red,
-    Colors.green,
-    Colors.lime,
-    Colors.brown,
-    Colors.amberAccent,
-    Colors.lightGreenAccent,
-    Colors.lightBlueAccent,
-    Colors.cyan,
-  ];
-  final int index;
-  const TestCubeTile({Key? key, required this.index}) : super(key: key);
+  final Function(double scrollDirection) onScroll;
+  final Block _block;
+
+  const TestCubeTile(this._block, {Key? key, required this.onScroll})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: colors[index],
-        border: Border.all(width: 2, color: colors[index]),
+    return Listener(
+      onPointerSignal: (pointerSignal) {
+        if (pointerSignal is PointerScrollEvent) {
+          onScroll(pointerSignal.scrollDelta.direction);
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(border: Border.all()),
+        child: Center(
+          child: Text(
+            _block.id,
+            style: const TextStyle(fontSize: 35),
+          ),
+        ),
       ),
-      alignment: Alignment.center,
-      child: Text(index.toString()),
     );
   }
 }
