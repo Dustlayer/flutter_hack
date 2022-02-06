@@ -56,12 +56,9 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen>
           const Spacer(flex: 1),
           // Expanded(flex: 4, child: CubeWidget(cube)),
           Expanded(
-              flex: 4,
-              child: Container(
-                  alignment: Alignment.center,
-                  decoration:
-                      BoxDecoration(border: Border.all(color: Colors.red)),
-                  child: TestStack(cube: cube))),
+            flex: 4,
+            child: TestStack(cube: cube),
+          ),
           const Spacer(flex: 1),
           Expanded(
             flex: 1,
@@ -196,12 +193,7 @@ class _TestStackState extends State<TestStack> with TickerProviderStateMixin {
     CubeActionCall? currentAction =
         actionQueue.isNotEmpty ? actionQueue[0] : null;
     Widget returnWidget = Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-            border: Border.all(
-          color: Colors.amber,
-          width: 5,
-        )),
+      body: Center(
         child: AspectRatio(
           aspectRatio: 1,
           child: LayoutBuilder(
@@ -246,12 +238,11 @@ class _TestStackState extends State<TestStack> with TickerProviderStateMixin {
                         parent: _controller,
                         curve: Curves.easeInOutQuart,
                       )),
-                      child: TestCubeTile(block,
-                          onScroll: (double direction) =>
-                              _handleScroll(direction, indexRow, indexColumn)),
+                      child: TestCubeTile(block),
                     );
                   },
-                )..addAll(
+                )
+                  ..addAll(
                     List.generate(
                       2 * cubeWidth + 2 * cubeWidth,
                       (index) {
@@ -311,13 +302,32 @@ class _TestStackState extends State<TestStack> with TickerProviderStateMixin {
                             parent: _controller,
                             curve: Curves.easeInOutQuart,
                           )),
-                          child: TestCubeTile(block,
-                              onScroll: (double direction) => _handleScroll(
-                                  direction, indexRow, indexColumn)),
+                          child: TestCubeTile(block),
                         );
                       },
                     ),
-                  ),
+                  )
+                  ..addAll(List.generate(cubeHeight * cubeWidth, (index) {
+                    // add (Scroll-)Listeners to render over all tiles
+                    final int indexRow = index ~/ cubeWidth;
+                    final int indexColumn = index % cubeWidth;
+                    return Positioned(
+                      left: indexColumn * width1_x,
+                      top: indexRow * height1_x,
+                      right: (cubeWidth - 1 - indexColumn) * width1_x,
+                      bottom: (cubeHeight - 1 - indexRow) * height1_x,
+                      child: Listener(
+                        onPointerSignal: (pointerSignal) {
+                          if (pointerSignal is PointerScrollEvent) {
+                            _handleScroll(pointerSignal.scrollDelta.direction,
+                                indexRow, indexColumn);
+                          }
+                        },
+                        // transparent child is needed for scroll to be detected
+                        child: Container(color: Colors.transparent),
+                      ),
+                    );
+                  })),
               );
             },
           ),
@@ -333,27 +343,25 @@ class _TestStackState extends State<TestStack> with TickerProviderStateMixin {
 }
 
 class TestCubeTile extends StatelessWidget {
-  final Function(double scrollDirection) onScroll;
   final Block _block;
 
-  const TestCubeTile(this._block, {Key? key, required this.onScroll})
-      : super(key: key);
+  const TestCubeTile(this._block, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Listener(
-      onPointerSignal: (pointerSignal) {
-        if (pointerSignal is PointerScrollEvent) {
-          onScroll(pointerSignal.scrollDelta.direction);
-        }
-      },
+    return Padding(
+      padding: const EdgeInsets.all(15),
       child: Container(
-        decoration: BoxDecoration(border: Border.all()),
-        child: Center(
-          child: Text(
-            _block.id,
-            style: const TextStyle(fontSize: 35),
-          ),
+        decoration: BoxDecoration(
+          border: Border.all(),
+          borderRadius: BorderRadius.circular(15),
+          color: Colors.lightBlue.shade300,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          _block.id,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 35),
         ),
       ),
     );
