@@ -39,19 +39,27 @@ class Face {
   }
 
   void shiftUp(int colIndex) {
-    top.pushFromBottom(colIndex, blocks.first[colIndex]);
+    if (colIndex < height && colIndex >= 0) {
+      top.pushFromBottom(colIndex, blocks.first[colIndex]);
+    }
   }
 
   void shiftDown(int colIndex) {
-    bottom.pushFromTop(colIndex, blocks.last[colIndex]);
+    if (colIndex < height && colIndex >= 0) {
+      bottom.pushFromTop(colIndex, blocks.last[colIndex]);
+    }
   }
 
   void shiftRight(int rowIndex) {
-    right.pushFromLeft(rowIndex, blocks[rowIndex].last);
+    if (rowIndex < width && rowIndex >= 0) {
+      right.pushFromLeft(rowIndex, blocks[rowIndex].last);
+    }
   }
 
   void shiftLeft(int rowIndex) {
-    left.pushFromRight(rowIndex, blocks[rowIndex].first);
+    if (rowIndex < width && rowIndex >= 0) {
+      left.pushFromRight(rowIndex, blocks[rowIndex].first);
+    }
   }
 
   void pushFromLeft(int rowIndex, Block block) {
@@ -112,12 +120,28 @@ class Face {
   }
 }
 
+enum CubeAction {
+  turnRowRight,
+  turnRowLeft,
+  turnColumnDown,
+  turnColumnUp,
+}
+
+class CubeActionCall {
+  final CubeAction action;
+  final int index;
+  CubeActionCall(this.action, this.index);
+
+  @override
+  String toString() => "$action ($index)";
+}
+
 class Cube {
   late Face front;
   int width;
   int height;
 
-  Cube([this.width = 3, this.height = 3]) {
+  Cube({this.width = 3, this.height = 3}) {
     reset();
   }
 
@@ -175,5 +199,30 @@ class Cube {
 
   void turnColumnDown(int colIndex) {
     front.shiftDown(colIndex);
+  }
+
+  void executeCubeAction(CubeActionCall actionCall) {
+    switch (actionCall.action) {
+      case CubeAction.turnColumnUp:
+        {
+          turnColumnUp(actionCall.index);
+        }
+        break;
+      case CubeAction.turnColumnDown:
+        {
+          turnColumnDown(actionCall.index);
+        }
+        break;
+      case CubeAction.turnRowLeft:
+        {
+          turnRowLeft(actionCall.index);
+        }
+        break;
+      case CubeAction.turnRowRight:
+        {
+          turnRowRight(actionCall.index);
+        }
+        break;
+    }
   }
 }
