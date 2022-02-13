@@ -4,6 +4,7 @@ import 'package:beamer/beamer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'models/keyboard_meta_keys_manager.dart';
 import 'models/models.dart';
 import 'navigation/page_routes.dart';
 import 'screens/screens.dart';
