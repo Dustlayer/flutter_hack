@@ -1,3 +1,8 @@
+// ignore_for_file: avoid_print
+
+///
+/// Currently unused;; only for reference
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hack/models/cube.dart';
@@ -124,11 +129,7 @@ class CubeTestWidgetState extends State<CubeTestWidget> {
             ),
 
           // actual rows;; see https://stackoverflow.com/a/54995553
-          ...face.blocks
-              .asMap()
-              .map((i, r) => MapEntry(i, buildRow(i, r, addMoveButtons)))
-              .values
-              .toList(),
+          ...face.blocks.asMap().map((i, r) => MapEntry(i, buildRow(i, r, addMoveButtons))).values.toList(),
 
           // Down button row
           if (addMoveButtons)
@@ -216,19 +217,21 @@ class BlockTestButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: BoxDecoration(border: Border.all()),
-        child: Listener(
-            onPointerSignal: (pointerSignal) {
-              if (pointerSignal is PointerScrollEvent) {
-                bool isShiftPressed =
-                    Provider.of<KeyboardMetaKeysManager>(context, listen: false)
-                        .isShiftPressed;
-                print(
-                    'Scrolled, ScrollDelta: ${pointerSignal.scrollDelta.direction}, ShiftPressed: $isShiftPressed');
-              }
-            },
-            child:
-                MaterialButton(onPressed: onPressed, child: Text(_block.id))));
+      decoration: BoxDecoration(border: Border.all()),
+      child: Listener(
+        onPointerSignal: (pointerSignal) {
+          if (pointerSignal is PointerScrollEvent) {
+            bool isShiftPressed = Provider.of<KeyboardMetaKeysManager>(context, listen: false).isShiftPressed;
+            print('Scrolled, ScrollDelta: ${pointerSignal.scrollDelta.direction}, ShiftPressed: $isShiftPressed');
+          }
+        },
+        child: MaterialButton(
+          onPressed: onPressed,
+          child: Text(_block.id),
+          color: Color(_block.value),
+        ),
+      ),
+    );
   }
 }
 
@@ -255,8 +258,7 @@ class _CubeWidgetState extends State<CubeWidget> {
                   aspectRatio: 1,
                   child: BlockButton(
                     block,
-                    onScroll: (double direction) =>
-                        _handleScroll(direction, indexRow, indexColumn),
+                    onScroll: (double direction) => _handleScroll(direction, indexRow, indexColumn),
                   ),
                 ),
               );
@@ -268,9 +270,7 @@ class _CubeWidgetState extends State<CubeWidget> {
   }
 
   void _handleScroll(double direction, int rowIndex, int columnIndex) {
-    bool isShiftPressed =
-        Provider.of<KeyboardMetaKeysManager>(context, listen: false)
-            .isShiftPressed;
+    bool isShiftPressed = Provider.of<KeyboardMetaKeysManager>(context, listen: false).isShiftPressed;
     bool scrolledUp = direction > 0 ? true : false;
     if (isShiftPressed && scrolledUp) {
       setState(() {
@@ -296,8 +296,7 @@ class BlockButton extends StatelessWidget {
   final Function(double scrollDirection) onScroll;
   final Block _block;
 
-  const BlockButton(this._block, {Key? key, required this.onScroll})
-      : super(key: key);
+  const BlockButton(this._block, {Key? key, required this.onScroll}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

@@ -28,8 +28,7 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen>
     super.initState();
     focus = FocusNode(debugLabel: 'ShiftHandler');
     _nodeAttachment = focus.attach(context, onKey: (node, event) {
-      Provider.of<KeyboardMetaKeysManager>(context, listen: false)
-          .isShiftPressed = event.isShiftPressed;
+      Provider.of<KeyboardMetaKeysManager>(context, listen: false).isShiftPressed = event.isShiftPressed;
       return KeyEventResult.handled;
     });
     focus.requestFocus();
@@ -135,10 +134,9 @@ class _TestStackState extends State<TestStack> with TickerProviderStateMixin {
   }
 
   void _handleScroll(double direction, int rowIndex, int columnIndex) {
-    bool isShiftPressed =
-        Provider.of<KeyboardMetaKeysManager>(context, listen: false)
-            .isShiftPressed;
+    bool isShiftPressed = Provider.of<KeyboardMetaKeysManager>(context, listen: false).isShiftPressed;
     bool scrolledUp = direction > 0 ? true : false;
+
     if (isShiftPressed && scrolledUp) {
       actionQueue.add(CubeActionCall(CubeAction.turnRowRight, rowIndex));
     } else if (isShiftPressed && !scrolledUp) {
@@ -164,23 +162,16 @@ class _TestStackState extends State<TestStack> with TickerProviderStateMixin {
 
   int _getNextRowIndex(CubeActionCall call, int indexRow, int indexColumn) {
     int result = indexRow;
-    if ([CubeAction.turnColumnUp, CubeAction.turnColumnDown]
-            .contains(call.action) &&
-        call.index == indexColumn) {
-      result =
-          call.action == CubeAction.turnColumnUp ? indexRow - 1 : indexRow + 1;
+    if ([CubeAction.turnColumnUp, CubeAction.turnColumnDown].contains(call.action) && call.index == indexColumn) {
+      result = call.action == CubeAction.turnColumnUp ? indexRow - 1 : indexRow + 1;
     }
     return result;
   }
 
   int _getNextColumnIndex(CubeActionCall call, int indexRow, int indexColumn) {
     int result = indexColumn;
-    if ([CubeAction.turnRowLeft, CubeAction.turnRowRight]
-            .contains(call.action) &&
-        call.index == indexRow) {
-      result = call.action == CubeAction.turnRowRight
-          ? indexColumn + 1
-          : indexColumn - 1;
+    if ([CubeAction.turnRowLeft, CubeAction.turnRowRight].contains(call.action) && call.index == indexRow) {
+      result = call.action == CubeAction.turnRowRight ? indexColumn + 1 : indexColumn - 1;
     }
     return result;
   }
@@ -190,8 +181,7 @@ class _TestStackState extends State<TestStack> with TickerProviderStateMixin {
     final int cubeWidth = widget.cube.width;
     final int cubeHeight = widget.cube.height;
 
-    CubeActionCall? currentAction =
-        actionQueue.isNotEmpty ? actionQueue[0] : null;
+    CubeActionCall? currentAction = actionQueue.isNotEmpty ? actionQueue[0] : null;
     Widget returnWidget = Scaffold(
       body: Center(
         child: AspectRatio(
@@ -209,15 +199,12 @@ class _TestStackState extends State<TestStack> with TickerProviderStateMixin {
                   (index) {
                     final int indexRow = index ~/ cubeWidth;
                     final int indexColumn = index % cubeWidth;
-                    final Block block =
-                        widget.cube.front.blocks[indexRow][indexColumn];
+                    final Block block = widget.cube.front.blocks[indexRow][indexColumn];
                     int nextIndexRow = indexRow;
                     int nextIndexColumn = indexColumn;
                     if (currentAction != null) {
-                      nextIndexRow = _getNextRowIndex(
-                          currentAction, indexRow, indexColumn);
-                      nextIndexColumn = _getNextColumnIndex(
-                          currentAction, indexRow, indexColumn);
+                      nextIndexRow = _getNextRowIndex(currentAction, indexRow, indexColumn);
+                      nextIndexColumn = _getNextColumnIndex(currentAction, indexRow, indexColumn);
                     }
                     return PositionedTransition(
                       key: ValueKey(block),
@@ -355,7 +342,7 @@ class TestCubeTile extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border.all(),
           borderRadius: BorderRadius.circular(15),
-          color: Colors.lightBlue.shade300,
+          color: Color(_block.value),
         ),
         alignment: Alignment.center,
         child: Text(

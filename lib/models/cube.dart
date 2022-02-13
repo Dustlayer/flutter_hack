@@ -1,3 +1,9 @@
+// ignore_for_file: avoid_print
+
+import 'dart:math';
+
+import 'package:flutter/material.dart';
+
 class Block {
   String id;
   int value;
@@ -19,13 +25,13 @@ class Face {
 
   int get height => _height;
 
-  Face(int width, int height, String id)
-      : _width = width,
-        _height = height {
+  Face(int width, int height, String id): _width = width, _height = height {
+    var random = Random();
     for (int r = 0; r < height; r++) {
       List<Block> row = List.empty(growable: true);
       for (int c = 0; c < width; c++) {
-        row.add(Block("$r-$c ($id)", 0));
+        var color = Color.fromARGB(255, random.nextInt(255), random.nextInt(255), random.nextInt(255));
+        row.add(Block("$r-$c ($id)", color.value)); // use color.value to convert to hex as value is an int
       }
       blocks.add(row);
     }
