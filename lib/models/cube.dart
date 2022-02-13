@@ -181,7 +181,7 @@ class Cube {
   }
 
   void turnDown() {
-    // for what?!
+    // for what?! - ¯\_(ツ)_/¯
     front = front.bottom;
   }
 
