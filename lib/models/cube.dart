@@ -150,6 +150,7 @@ class Cube {
   Cube({this.width = 3, this.height = 3}) {
     reset();
   }
+  Cube.fromFace(this.front): width = front.width, height = front.height;
 
   void reset() {
     Face front = Face(width, height, "front");

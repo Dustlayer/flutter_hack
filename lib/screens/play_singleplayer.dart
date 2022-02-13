@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hack/models/cube.dart';
@@ -13,13 +14,15 @@ class PlaySingleplayerScreen extends StatefulWidget {
   _PlaySingleplayerScreenState createState() => _PlaySingleplayerScreenState();
 }
 
-class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen>
-    with SingleTickerProviderStateMixin {
+class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with SingleTickerProviderStateMixin {
   late final FocusNode focus;
   late final FocusAttachment _nodeAttachment;
   Cube cube = Cube();
 
   late AnimationController _controller;
+
+  final double kDebugRotationSpeed = pi / 20; // 10 'ticks' per 90 degrees
+  double _sliderValue = 0.0;
 
   // bool isShiftPressed = false;
 
@@ -28,7 +31,18 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen>
     super.initState();
     focus = FocusNode(debugLabel: 'ShiftHandler');
     _nodeAttachment = focus.attach(context, onKey: (node, event) {
-      Provider.of<KeyboardMetaKeysManager>(context, listen: false).isShiftPressed = event.isShiftPressed;
+      if (event.character == 'd') {
+        setState(() {
+          _sliderValue = (_sliderValue - kDebugRotationSpeed).clamp(0, 1);
+        });
+      } else if (event.character == 'a') {
+        setState(() {
+          _sliderValue = (_sliderValue + kDebugRotationSpeed).clamp(0, 1);
+        });
+      }
+
+      // Provider.of<KeyboardMetaKeysManager>(context, listen: false).isShiftPressed = event.isShiftPressed;
+
       return KeyEventResult.handled;
     });
     focus.requestFocus();
@@ -36,13 +50,18 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen>
     // shift indicator animation
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 125),
+      // duration: const Duration(milliseconds: 250), // TODO change back to 125
+      duration: const Duration(milliseconds: 2000), // TODO change back to 125
     );
+    _controller.addListener(() {
+      setState(() {});
+    });
   }
 
   @override
   void dispose() {
     focus.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -56,9 +75,79 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen>
           // Expanded(flex: 4, child: CubeWidget(cube)),
           Expanded(
             flex: 4,
-            child: TestStack(cube: cube),
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    final double halfWidth = constraints.biggest.width / 2;
+                    // final double alpha = pi / 2 * _controller.value;
+                    final double alpha = pi / 2 * _sliderValue;
+
+                    return Container(
+                      decoration: BoxDecoration(border: Border.all(color: Colors.red, width: 5)),
+                      child: Stack(
+                        children: [
+                          //
+                          // [1] [2]
+                          //
+                          Positioned.fill(
+                            child: Transform(
+                              alignment: AlignmentDirectional.center,
+                              // ..setEntry(3, 2, .0001)
+                              transform: Matrix4.identity()
+                                // ..setEntry(3, 2, .001)  // perspective;; todo: broken
+                                // ..translate(-halfWidth * sin(alpha), 0, halfWidth * cos(alpha))
+                                ..translate(-halfWidth * sin(alpha), 0, 0)
+                                ..rotateY(alpha)
+                              ,
+                              child: Container(
+                                decoration: BoxDecoration(border: Border.all(color: Colors.green, width: 3)),
+                                child: TestStack(
+                                  cube: cube,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Positioned.fill(
+                            child: Transform(
+                              alignment: AlignmentDirectional.center,
+                              transform: Matrix4.identity()
+                                // ..setEntry(3, 2, -.001)  // perspective;; todo: broken
+                                ..translate(halfWidth * cos(alpha), 0, halfWidth * sin(alpha))
+                                ..rotateY(-pi / 2 + alpha)
+                              ,
+                              child: Container(
+                                decoration: BoxDecoration(border: Border.all(color: Colors.blue, width: 5)),
+                                child: TestStack(
+                                  cube: Cube.fromFace(
+                                      cube.front.right), // dummy to rotate;; has to be rotate 90° around z-axis
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
           ),
           const Spacer(flex: 1),
+          Expanded(
+            flex: 1,
+            child: Slider(
+              value: _sliderValue,
+              max: 1.0,
+              label: _sliderValue.round().toString(),
+              onChanged: (double value) {
+                setState(() {
+                  _sliderValue = value;
+                });
+              },
+            ),
+          ),
           Expanded(
             flex: 1,
             child: Consumer<KeyboardMetaKeysManager>(
@@ -86,6 +175,7 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen>
 
 class TestStack extends StatefulWidget {
   final Cube cube;
+
   const TestStack({Key? key, required this.cube}) : super(key: key);
 
   @override
@@ -128,8 +218,7 @@ class _TestStackState extends State<TestStack> with TickerProviderStateMixin {
   }
 
   Duration _calcAnimationDuration({int offset = 0}) {
-    final int calcDuration =
-        (200 * pow(e, -(actionQueue.length - 1 - offset)) + 50).round();
+    final int calcDuration = (200 * pow(e, -(actionQueue.length - 1 - offset)) + 50).round();
     return Duration(milliseconds: calcDuration);
   }
 
@@ -241,34 +330,27 @@ class _TestStackState extends State<TestStack> with TickerProviderStateMixin {
                           // in row above first row
                           indexRow = -1;
                           indexColumn = index % cubeWidth;
-                          block = widget.cube.front.top.blocks[cubeHeight - 1]
-                              [indexColumn];
+                          block = widget.cube.front.top.blocks[cubeHeight - 1][indexColumn];
                         } else if (index < cubeWidth + 2 * cubeHeight) {
                           // left and right side outside of cube
                           int normalizedIndex = index - cubeWidth;
                           indexRow = normalizedIndex ~/ 2;
-                          indexColumn =
-                              normalizedIndex % 2 == 0 ? -1 : cubeWidth;
+                          indexColumn = normalizedIndex % 2 == 0 ? -1 : cubeWidth;
                           block = indexColumn == -1
-                              ? widget.cube.front.left.blocks[indexRow]
-                                  [cubeWidth - 1]
+                              ? widget.cube.front.left.blocks[indexRow][cubeWidth - 1]
                               : widget.cube.front.right.blocks[indexRow][0];
                         } else {
                           // row below cube
-                          int normalizedIndex =
-                              index - cubeWidth - 2 * cubeHeight;
+                          int normalizedIndex = index - cubeWidth - 2 * cubeHeight;
                           indexRow = cubeHeight;
                           indexColumn = normalizedIndex % cubeWidth;
-                          block =
-                              widget.cube.front.bottom.blocks[0][indexColumn];
+                          block = widget.cube.front.bottom.blocks[0][indexColumn];
                         }
                         int nextIndexRow = indexRow;
                         int nextIndexColumn = indexColumn;
                         if (currentAction != null) {
-                          nextIndexRow = _getNextRowIndex(
-                              currentAction, indexRow, indexColumn);
-                          nextIndexColumn = _getNextColumnIndex(
-                              currentAction, indexRow, indexColumn);
+                          nextIndexRow = _getNextRowIndex(currentAction, indexRow, indexColumn);
+                          nextIndexColumn = _getNextColumnIndex(currentAction, indexRow, indexColumn);
                         }
                         return PositionedTransition(
                           key: ValueKey(block),
@@ -306,8 +388,7 @@ class _TestStackState extends State<TestStack> with TickerProviderStateMixin {
                       child: Listener(
                         onPointerSignal: (pointerSignal) {
                           if (pointerSignal is PointerScrollEvent) {
-                            _handleScroll(pointerSignal.scrollDelta.direction,
-                                indexRow, indexColumn);
+                            _handleScroll(pointerSignal.scrollDelta.direction, indexRow, indexColumn);
                           }
                         },
                         // transparent child is needed for scroll to be detected

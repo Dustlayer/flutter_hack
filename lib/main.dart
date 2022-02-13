@@ -9,6 +9,12 @@ import 'models/models.dart';
 import 'navigation/page_routes.dart';
 import 'screens/screens.dart';
 
+///
+/// # Ideas
+///
+/// # Todos
+///
+
 void main() {
   runApp(MyApp());
 }
@@ -22,8 +28,7 @@ class MyApp extends StatelessWidget {
         PageRoutes.home: (context, state, data) => HomeScreen(),
         PageRoutes.leaderboard: (context, state, data) => LeaderboardScreen(),
         // '/play': (context, state, data) => PlayScreen(),
-        PageRoutes.singleplayer: (context, state, data) =>
-            PlaySingleplayerScreen(),
+        PageRoutes.singleplayer: (context, state, data) => PlaySingleplayerScreen(),
         // TestStack(),
         // CubeTestWidget(Cube()),
         PageRoutes.multiplayer: (context, state, data) =>
