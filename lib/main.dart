@@ -10,10 +10,33 @@ import 'navigation/page_routes.dart';
 import 'screens/screens.dart';
 
 ///
+/// # Todos (due 28.02.22!)
+/// - main game logic
+///   - initialize -> 'shuffle'
+///   - win condition
+///
+///  - victory screen
+///    - show score
+///    - route back to home
+///    - restart game
+///
+/// -- Code Cleanup --
+/// -> Ui, Controller, Data
+///
+/// - publishing
+///   - Text description
+///   - Video <= 3min
+///   - Hosting
+///   - Code comments?
+///
+/// # Extra:
+/// - improve spinning (visual)
+/// - custom renderer (opengl)
+/// - gesture input (touch/click and drag + modifiers to switch 'modes')
+/// - multiplayer (versus)
+///
 /// # Ideas
-///
-/// # Todos
-///
+/// - coop multiplayer
 
 void main() {
   runApp(MyApp());
