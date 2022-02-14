@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hack/components/dustin_test.dart';
 import 'package:flutter_hack/models/cube.dart';
 import 'package:flutter_hack/models/keyboard_meta_keys_manager.dart';
 import 'package:provider/provider.dart';
@@ -74,7 +75,11 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
           const Spacer(flex: 1),
           // Expanded(flex: 4, child: CubeWidget(cube)),
           Expanded(
-            flex: 4,
+            flex: 5,
+            child: CubeWidget(cube: cube),
+          ),
+          /*Expanded(
+            flex: 1,
             child: Center(
               child: AspectRatio(
                 aspectRatio: 1,
@@ -99,8 +104,7 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
                                 // ..setEntry(3, 2, .001)  // perspective;; todo: broken
                                 // ..translate(-halfWidth * sin(alpha), 0, halfWidth * cos(alpha))
                                 ..translate(-halfWidth * sin(alpha), 0, 0)
-                                ..rotateY(alpha)
-                              ,
+                                ..rotateY(alpha),
                               child: Container(
                                 decoration: BoxDecoration(border: Border.all(color: Colors.green, width: 3)),
                                 child: TestStack(
@@ -115,8 +119,7 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
                               transform: Matrix4.identity()
                                 // ..setEntry(3, 2, -.001)  // perspective;; todo: broken
                                 ..translate(halfWidth * cos(alpha), 0, halfWidth * sin(alpha))
-                                ..rotateY(-pi / 2 + alpha)
-                              ,
+                                ..rotateY(-pi / 2 + alpha),
                               child: Container(
                                 decoration: BoxDecoration(border: Border.all(color: Colors.blue, width: 5)),
                                 child: TestStack(
@@ -133,7 +136,7 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
                 ),
               ),
             ),
-          ),
+          ),*/
           const Spacer(flex: 1),
           Expanded(
             flex: 1,
