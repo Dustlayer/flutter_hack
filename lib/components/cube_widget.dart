@@ -7,8 +7,10 @@ import 'dart:math';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hack/models/cube.dart';
+import 'package:flutter_hack/models/keyboard_meta_keys_manager.dart';
+import 'package:provider/provider.dart';
 
-import '../screens/play_singleplayer.dart';
+import 'cube_face_widget.dart';
 
 class CubeWidget extends StatefulWidget {
   Cube cube;
@@ -93,84 +95,86 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleScroll(double direction) {
+    KeyboardMetaKeysManager manager = Provider.of<KeyboardMetaKeysManager>(context, listen: false);
+    if (manager.isAltPressed) {
+      if (manager.isShiftPressed) {
+        if (direction.isNegative) {
+          _rotateToRight();
+        } else {
+          _rotateToLeft();
+        }
+      } else {
+        if (direction.isNegative) {
+          _rotateToBottom();
+        } else {
+          _rotateToTop();
+        }
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          flex: 2,
-          child: Column(
-            children: [
-              ElevatedButton(
-                child: Text('Turn Up'),
-                onPressed: () => _rotateToTop(),
+    return AspectRatio(
+      aspectRatio: 1,
+      child: Stack(
+        clipBehavior: Clip.antiAlias,
+        children: <Widget>[
+          SlideTransition(
+            key: ObjectKey(widget.cube),
+            position: Tween<Offset>(
+              begin: Offset.zero,
+              end: Offset(1.0 * _turnXDirection, -1.0 * _turnYDirection),
+            ).animate(animation),
+            child: Container(
+              color: Colors.transparent,
+              child: Transform(
+                transform: Matrix4.identity()
+                  ..setEntry(3, 2, 0.003)
+                  ..rotateY(pi / 2 * animation.value * -_turnXDirection)
+                  ..rotateX(pi / 2 * animation.value * -_turnYDirection),
+                alignment: _frontAnimationAlignment,
+                child: CubeFace(key: ObjectKey(widget.cube), cube: widget.cube),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    child: Text('Turn Left'),
-                    onPressed: () => _rotateToLeft(),
-                  ),
-                  ElevatedButton(
-                    child: Text('Turn Right'),
-                    onPressed: () => _rotateToRight(),
-                  ),
-                ],
-              ),
-              ElevatedButton(
-                child: Text('Turn Down'),
-                onPressed: () => _rotateToBottom(),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          flex: 5,
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: Stack(
-              clipBehavior: Clip.antiAlias,
-              children: <Widget>[
-                SlideTransition(
-                  position: Tween<Offset>(
-                    begin: Offset.zero,
-                    end: Offset(1.0 * _turnXDirection, -1.0 * _turnYDirection),
-                  ).animate(animation),
-                  child: Container(
-                    color: Colors.transparent,
-                    child: Transform(
-                      transform: Matrix4.identity()
-                        ..setEntry(3, 2, 0.003)
-                        ..rotateY(pi / 2 * animation.value * -_turnXDirection)
-                        ..rotateX(pi / 2 * animation.value * -_turnYDirection),
-                      alignment: _frontAnimationAlignment,
-                      child: CubeFace(key: const ValueKey(1), cube: widget.cube),
-                    ),
-                  ),
-                ),
-                if (_nextCube != null)
-                  SlideTransition(
-                    position: Tween<Offset>(
-                      begin: Offset(-1.0 * _turnXDirection, 1.0 * _turnYDirection),
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: Container(
-                      color: Colors.transparent,
-                      child: Transform(
-                        transform: Matrix4.identity()
-                          ..setEntry(3, 2, 0.003)
-                          ..rotateY(pi / 2 * (animation.value - 1) * -_turnXDirection)
-                          ..rotateX(pi / 2 * (animation.value - 1) * -_turnYDirection),
-                        alignment: _nextAnimationAlignment,
-                        child: CubeFace(key: const ValueKey(2), cube: _nextCube!),
-                      ),
-                    ),
-                  ),
-              ],
             ),
           ),
-        ),
-      ],
+          if (_nextCube != null)
+            SlideTransition(
+              key: ObjectKey(_nextCube),
+              position: Tween<Offset>(
+                begin: Offset(-1.0 * _turnXDirection, 1.0 * _turnYDirection),
+                end: Offset.zero,
+              ).animate(animation),
+              child: Container(
+                color: Colors.transparent,
+                child: Transform(
+                  transform: Matrix4.identity()
+                    ..setEntry(3, 2, 0.003)
+                    ..rotateY(pi / 2 * (animation.value - 1) * -_turnXDirection)
+                    ..rotateX(pi / 2 * (animation.value - 1) * -_turnYDirection),
+                  alignment: _nextAnimationAlignment,
+                  child: CubeFace(key: ObjectKey(_nextCube), cube: _nextCube!),
+                ),
+              ),
+            ),
+          Positioned.fill(
+            child: Listener(
+              behavior: HitTestBehavior.translucent,
+              onPointerSignal: (pointerSignal) {
+                if (pointerSignal is PointerScrollEvent) {
+                  _handleScroll(pointerSignal.scrollDelta.direction);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
