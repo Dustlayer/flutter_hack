@@ -39,6 +39,8 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
           _controller.duration = _calcAnimationDuration();
           // update cube after animation played
           widget.cube.executeCubeAction(call);
+
+          widget.cube.checkIntegrity();
         });
       }
     });

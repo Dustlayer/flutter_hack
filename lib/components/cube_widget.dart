@@ -13,14 +13,14 @@ import 'package:provider/provider.dart';
 import 'cube_face_widget.dart';
 
 class CubeWidget extends StatefulWidget {
-  final Cube cube;
+  Cube cube;
   
   final Key cubeKey = const ValueKey("cube");
   final Key cubeTransitionKey = const ValueKey("cube");
   final Key nextCubeKey = const ValueKey("nextCube");
   final Key nextCubeTransitionKey = const ValueKey("nextCube");
 
-  const CubeWidget({Key? key, required this.cube}) : super(key: key);
+  CubeWidget({Key? key, required this.cube}) : super(key: key);
 
   @override
   _CubeWidgetState createState() => _CubeWidgetState();
@@ -91,9 +91,10 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
     animation.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         setState(() {
-          // try fix the scroll bug
-          widget.cube.front = _nextCube!.front;
+          // todo: cube should be final...
+          widget.cube = _nextCube!;
           _nextCube = null;
+          widget.cube.checkIntegrity();
 
           // set data according to the desired state after animation
           _turnYDirection = 0;

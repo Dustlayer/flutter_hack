@@ -18,6 +18,8 @@ class Face {
   late Face left, right, top, bottom;
   List<List<Block>> blocks;
 
+  List<String> actionTrace = List.empty(growable: true);
+
   final int _width, _height;
   bool _isShifting = false;
 
@@ -57,7 +59,10 @@ class Face {
       blocksCopy.add(rowCopy);
     }
 
-    return Face(blocksCopy, other._width, other._height);
+    Face out = Face(blocksCopy, other._width, other._height);
+    out.actionTrace.addAll(other.actionTrace);
+
+    return out;
   }
 
   void init(Face left, Face right, Face top, Face bottom) {
@@ -70,24 +75,28 @@ class Face {
   void shiftUp(int colIndex) {
     if (colIndex < height && colIndex >= 0) {
       top.pushFromBottom(colIndex, blocks.first[colIndex]);
+      actionTrace.add("shiftUp $colIndex");
     }
   }
 
   void shiftDown(int colIndex) {
     if (colIndex < height && colIndex >= 0) {
       bottom.pushFromTop(colIndex, blocks.last[colIndex]);
+      actionTrace.add("shiftDown $colIndex");
     }
   }
 
   void shiftRight(int rowIndex) {
     if (rowIndex < width && rowIndex >= 0) {
       right.pushFromLeft(rowIndex, blocks[rowIndex].last);
+      actionTrace.add("shiftRight $rowIndex");
     }
   }
 
   void shiftLeft(int rowIndex) {
     if (rowIndex < width && rowIndex >= 0) {
       left.pushFromRight(rowIndex, blocks[rowIndex].first);
+      actionTrace.add("shiftLeft $rowIndex");
     }
   }
 
@@ -159,6 +168,8 @@ class Face {
 
     // cycle blocks
     blocks = rotateBlocks(blocks);
+
+    actionTrace.add("cycleClockwise");
   }
 
   void cycleCounterClockwise() {
@@ -173,6 +184,8 @@ class Face {
 
     // cycle blocks
     blocks = rotateBlocks(blocks, counterClockwise: true);
+
+    actionTrace.add("cycleCounterClockwise");
   }
 
   static List<List<Block>> rotateBlocks(List<List<Block>> blocks, {bool counterClockwise = false}) {
@@ -186,12 +199,13 @@ class Face {
 
     List<List<Block>> rotated = List.generate(
       blocks.length,
-          (index) => List.generate(
-        blocks[0].length,
-            (index) => Block("THIS SHOULD NOT BE VISIBLE", -1),
-        growable: false,
-      ),
-      growable: false,
+          (index) =>
+          List.generate(
+            blocks[0].length,
+                (index) => Block("THIS SHOULD NOT BE VISIBLE", -1),
+            growable: true,
+          ),
+      growable: true,
     );
 
     for (int r = 0; r < m; r++) {
@@ -236,6 +250,8 @@ class Cube {
   int width;
   int height;
 
+  List<String> actionTrace = List.empty(growable: true);
+
   Cube(this.front, Face right, Face back, Face left, Face top, Face bottom)
       : width = front.width,
         height = front.height {
@@ -273,6 +289,8 @@ class Cube {
     front.bottom.cycleCounterClockwise();
 
     front = front.right;
+
+    actionTrace.add("turnLeft");
   }
 
   void turnRight() {
@@ -280,6 +298,8 @@ class Cube {
     front.bottom.cycleClockwise();
 
     front = front.left;
+
+    actionTrace.add("turnRight");
   }
 
   void turnUp() {
@@ -287,6 +307,8 @@ class Cube {
     front.left.cycleCounterClockwise();
 
     front = front.bottom;
+
+    actionTrace.add("turnUp");
   }
 
   void turnDown() {
@@ -295,22 +317,32 @@ class Cube {
     front.left.cycleClockwise();
 
     front = front.top;
-  }
 
-  void turnRowRight(int rowIndex) {
-    front.shiftRight(rowIndex);
+    actionTrace.add("turnDown");
   }
 
   void turnRowLeft(int rowIndex) {
     front.shiftLeft(rowIndex);
+
+    actionTrace.add("turnRowLeft $rowIndex");
+  }
+
+  void turnRowRight(int rowIndex) {
+    front.shiftRight(rowIndex);
+
+    actionTrace.add("turnRowRight $rowIndex");
   }
 
   void turnColumnUp(int colIndex) {
     front.shiftUp(colIndex);
+
+    actionTrace.add("turnColumnUp $colIndex");
   }
 
   void turnColumnDown(int colIndex) {
     front.shiftDown(colIndex);
+
+    actionTrace.add("turnColumnDown $colIndex");
   }
 
   void executeCubeAction(CubeActionCall actionCall) {
@@ -346,6 +378,40 @@ class Cube {
     Face newTop = Face.fromFace(front.top);
     Face newBottom = Face.fromFace(front.bottom);
 
-    return Cube(newFront, newRight, newBack, newLeft, newTop, newBottom);
+    Cube out = Cube(newFront, newRight, newBack, newLeft, newTop, newBottom);
+    out.actionTrace.addAll(actionTrace);
+
+    return out;
+  }
+
+  bool checkIntegrity() {
+    List<Block> seen = List.empty(growable: true);
+
+    List<Face> faces = [front, front.right, front.right.right, front.left, front.top, front.bottom];
+
+    for (Face face in faces) {
+      for (List<Block> row in face.blocks) {
+        for (Block block in row) {
+          if (seen.contains(block)) {
+            print("Integrity compromised!");
+            print("Cube trace:");
+            for (String action in actionTrace) {
+              print(action);
+            }
+
+            print("Face trace:");
+            for (String action in face.actionTrace) {
+              print(action);
+            }
+
+            return false;
+          }
+
+          seen.add(block);
+        }
+      }
+    }
+
+    return true;
   }
 }
