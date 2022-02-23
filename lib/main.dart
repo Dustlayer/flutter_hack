@@ -3,8 +3,6 @@
 import 'package:beamer/beamer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import 'models/keyboard_meta_keys_manager.dart';
 import 'models/models.dart';
 import 'navigation/page_routes.dart';
 import 'screens/screens.dart';
@@ -48,14 +46,14 @@ class MyApp extends StatelessWidget {
   final routerDelegate = BeamerDelegate(
     locationBuilder: RoutesLocationBuilder(
       routes: {
-        PageRoutes.home: (context, state, data) => HomeScreen(),
-        PageRoutes.leaderboard: (context, state, data) => LeaderboardScreen(),
+        PageRoutes.home: (context, state, data) => const HomeScreen(),
+        PageRoutes.leaderboard: (context, state, data) => const LeaderboardScreen(),
         // '/play': (context, state, data) => PlayScreen(),
-        PageRoutes.singleplayer: (context, state, data) => PlaySingleplayerScreen(),
+        PageRoutes.singleplayer: (context, state, data) => const PlaySingleplayerScreen(),
         // TestStack(),
         // CubeTestWidget(Cube()),
         PageRoutes.multiplayer: (context, state, data) =>
-            PlayMultiplayerScreen(),
+        const PlayMultiplayerScreen(),
         PageRoutes.multiplayerGame: (context, state, data) =>
             PlayMultiplayerScreen(
               gameId: state.pathParameters['gameId'],

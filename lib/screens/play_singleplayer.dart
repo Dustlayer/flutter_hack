@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hack/components/keyboard_indicator.dart';
 import 'package:flutter_hack/models/cube.dart';
@@ -17,7 +16,7 @@ class PlaySingleplayerScreen extends StatefulWidget {
 class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with SingleTickerProviderStateMixin {
   late final FocusNode focus;
   late final FocusAttachment _nodeAttachment;
-  Cube cube = Cube();
+  Cube cube = Cube.random();
 
   // bool isShiftPressed = false;
 

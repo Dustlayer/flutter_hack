@@ -5,6 +5,6 @@ class EmptyMatchHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text('Noch keine Matches vorhanden!');
+    return const Text('Noch keine Matches vorhanden!');
   }
 }

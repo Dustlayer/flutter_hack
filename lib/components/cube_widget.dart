@@ -13,9 +13,14 @@ import 'package:provider/provider.dart';
 import 'cube_face_widget.dart';
 
 class CubeWidget extends StatefulWidget {
-  Cube cube;
+  final Cube cube;
+  
+  final Key cubeKey = const ValueKey("cube");
+  final Key cubeTransitionKey = const ValueKey("cube");
+  final Key nextCubeKey = const ValueKey("nextCube");
+  final Key nextCubeTransitionKey = const ValueKey("nextCube");
 
-  CubeWidget({Key? key, required this.cube}) : super(key: key);
+  const CubeWidget({Key? key, required this.cube}) : super(key: key);
 
   @override
   _CubeWidgetState createState() => _CubeWidgetState();
@@ -39,7 +44,8 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
   );
 
   void _rotateToRight() {
-    _nextCube = Cube.fromFace(widget.cube.front.right);
+    _nextCube = widget.cube.deepCopy();
+    _nextCube!.turnLeft();
     _turnYDirection = 0;
     _turnXDirection = -1;
     _frontAnimationAlignment = FractionalOffset.centerRight;
@@ -48,7 +54,8 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
   }
 
   void _rotateToLeft() {
-    _nextCube = Cube.fromFace(widget.cube.front.left);
+    _nextCube = widget.cube.deepCopy();
+    _nextCube!.turnRight();
     _turnYDirection = 0;
     _turnXDirection = 1;
     _frontAnimationAlignment = FractionalOffset.centerLeft;
@@ -57,7 +64,8 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
   }
 
   void _rotateToTop() {
-    _nextCube = Cube.fromFace(widget.cube.front.top);
+    _nextCube = widget.cube.deepCopy();
+    _nextCube!.turnDown();
     _turnYDirection = -1;
     _turnXDirection = 0;
     _frontAnimationAlignment = FractionalOffset.topCenter;
@@ -66,7 +74,8 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
   }
 
   void _rotateToBottom() {
-    _nextCube = Cube.fromFace(widget.cube.front.bottom);
+    _nextCube = widget.cube.deepCopy();
+    _nextCube!.turnUp();
     _turnYDirection = 1;
     _turnXDirection = 0;
     _frontAnimationAlignment = FractionalOffset.bottomCenter;
@@ -82,9 +91,11 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
     animation.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         setState(() {
-          // set data according to the desired state after animation
+          // try fix the scroll bug
           widget.cube.front = _nextCube!.front;
           _nextCube = null;
+
+          // set data according to the desired state after animation
           _turnYDirection = 0;
           _turnXDirection = 0;
           _controller.reset();
@@ -127,7 +138,7 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
         clipBehavior: Clip.antiAlias,
         children: <Widget>[
           SlideTransition(
-            key: ObjectKey(widget.cube),
+            key: widget.cubeTransitionKey,
             position: Tween<Offset>(
               begin: Offset.zero,
               end: Offset(1.0 * _turnXDirection, -1.0 * _turnYDirection),
@@ -140,13 +151,13 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
                   ..rotateY(pi / 2 * animation.value * -_turnXDirection)
                   ..rotateX(pi / 2 * animation.value * -_turnYDirection),
                 alignment: _frontAnimationAlignment,
-                child: CubeFace(key: ObjectKey(widget.cube), cube: widget.cube),
+                child: CubeFace(key: widget.cubeKey, cube: widget.cube),
               ),
             ),
           ),
           if (_nextCube != null)
             SlideTransition(
-              key: ObjectKey(_nextCube),
+              key: widget.nextCubeTransitionKey,
               position: Tween<Offset>(
                 begin: Offset(-1.0 * _turnXDirection, 1.0 * _turnYDirection),
                 end: Offset.zero,
@@ -159,7 +170,7 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
                     ..rotateY(pi / 2 * (animation.value - 1) * -_turnXDirection)
                     ..rotateX(pi / 2 * (animation.value - 1) * -_turnYDirection),
                   alignment: _nextAnimationAlignment,
-                  child: CubeFace(key: ObjectKey(_nextCube), cube: _nextCube!),
+                  child: CubeFace(key: widget.nextCubeKey, cube: _nextCube!),
                 ),
               ),
             ),

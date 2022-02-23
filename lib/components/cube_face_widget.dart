@@ -117,8 +117,8 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
           builder: (BuildContext context, BoxConstraints constraints) {
             final Size biggest = constraints.biggest;
             // 1/x the width, dynamically from the cube height / width
-            final double width1_x = biggest.width / cubeWidth;
-            final double height1_x = biggest.height / cubeHeight;
+            final double width1X = biggest.width / cubeWidth;
+            final double height1X = biggest.height / cubeHeight;
             return Stack(
               clipBehavior: Clip.antiAlias,
               children: List.generate(
@@ -134,19 +134,19 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
                     nextIndexColumn = _getNextColumnIndex(currentAction, indexRow, indexColumn);
                   }
                   return PositionedTransition(
-                    key: ObjectKey(block),
+                    // key: ObjectKey(block),
                     rect: RelativeRectTween(
                       begin: RelativeRect.fromLTRB(
-                        indexColumn * width1_x,
-                        indexRow * height1_x,
-                        (cubeWidth - 1 - indexColumn) * width1_x,
-                        (cubeHeight - 1 - indexRow) * height1_x,
+                        indexColumn * width1X,
+                        indexRow * height1X,
+                        (cubeWidth - 1 - indexColumn) * width1X,
+                        (cubeHeight - 1 - indexRow) * height1X,
                       ),
                       end: RelativeRect.fromLTRB(
-                        nextIndexColumn * width1_x,
-                        nextIndexRow * height1_x,
-                        (cubeWidth - 1 - nextIndexColumn) * width1_x,
-                        (cubeHeight - 1 - nextIndexRow) * height1_x,
+                        nextIndexColumn * width1X,
+                        nextIndexRow * height1X,
+                        (cubeWidth - 1 - nextIndexColumn) * width1X,
+                        (cubeHeight - 1 - nextIndexRow) * height1X,
                       ),
                     ).animate(CurvedAnimation(
                       parent: _controller,
@@ -191,19 +191,19 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
                         nextIndexColumn = _getNextColumnIndex(currentAction, indexRow, indexColumn);
                       }
                       return PositionedTransition(
-                        key: ObjectKey(block),
+                        // key: ObjectKey(block),
                         rect: RelativeRectTween(
                           begin: RelativeRect.fromLTRB(
-                            indexColumn * width1_x,
-                            indexRow * height1_x,
-                            (cubeWidth - 1 - indexColumn) * width1_x,
-                            (cubeHeight - 1 - indexRow) * height1_x,
+                            indexColumn * width1X,
+                            indexRow * height1X,
+                            (cubeWidth - 1 - indexColumn) * width1X,
+                            (cubeHeight - 1 - indexRow) * height1X,
                           ),
                           end: RelativeRect.fromLTRB(
-                            nextIndexColumn * width1_x,
-                            nextIndexRow * height1_x,
-                            (cubeWidth - 1 - nextIndexColumn) * width1_x,
-                            (cubeHeight - 1 - nextIndexRow) * height1_x,
+                            nextIndexColumn * width1X,
+                            nextIndexRow * height1X,
+                            (cubeWidth - 1 - nextIndexColumn) * width1X,
+                            (cubeHeight - 1 - nextIndexRow) * height1X,
                           ),
                         ).animate(CurvedAnimation(
                           parent: _controller,
@@ -219,10 +219,10 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
                   final int indexRow = index ~/ cubeWidth;
                   final int indexColumn = index % cubeWidth;
                   return Positioned(
-                    left: indexColumn * width1_x,
-                    top: indexRow * height1_x,
-                    right: (cubeWidth - 1 - indexColumn) * width1_x,
-                    bottom: (cubeHeight - 1 - indexRow) * height1_x,
+                    left: indexColumn * width1X,
+                    top: indexRow * height1X,
+                    right: (cubeWidth - 1 - indexColumn) * width1X,
+                    bottom: (cubeHeight - 1 - indexRow) * height1X,
                     child: Listener(
                       behavior: HitTestBehavior.opaque,
                       onPointerSignal: (pointerSignal) {

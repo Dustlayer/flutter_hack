@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hack/navigation/page_routes.dart';
 
 class HomeScreen extends StatelessWidget {
-  HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('3D Puzzle')),
+      appBar: AppBar(title: const Text('3D Puzzle')),
       body: Row(
         children: [
           const Spacer(flex: 3),
@@ -50,7 +50,7 @@ class HomeScreen extends StatelessWidget {
 }
 
 class MenuButton extends StatelessWidget {
-  MenuButton({Key? key, required this.text, required this.onPressed})
+  const MenuButton({Key? key, required this.text, required this.onPressed})
       : super(key: key);
 
   final String text;

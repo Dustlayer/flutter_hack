@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class PlayMultiplayerScreen extends StatelessWidget {
-  PlayMultiplayerScreen({Key? key, this.gameId}) : super(key: key);
+  const PlayMultiplayerScreen({Key? key, this.gameId}) : super(key: key);
 
-  String? gameId;
+  final String? gameId;
 
   @override
   Widget build(BuildContext context) {
@@ -11,7 +11,7 @@ class PlayMultiplayerScreen extends StatelessWidget {
     if (gameId != null) {
       return Text("play Mutliplayer with gameId $gameId");
     } else {
-      return Text("Insert gameID: ______");
+      return const Text("Insert gameID: ______");
     }
   }
 }
