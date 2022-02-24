@@ -3,6 +3,7 @@
 import 'package:beamer/beamer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'models/models.dart';
 import 'navigation/page_routes.dart';
 import 'screens/screens.dart';
@@ -46,16 +47,14 @@ class MyApp extends StatelessWidget {
   final routerDelegate = BeamerDelegate(
     locationBuilder: RoutesLocationBuilder(
       routes: {
-        PageRoutes.home: (context, state, data) => const HomeScreen(),
+        PageRoutes.home: (context, state, data) => HomeScreen(),
         PageRoutes.leaderboard: (context, state, data) => const LeaderboardScreen(),
         // '/play': (context, state, data) => PlayScreen(),
         PageRoutes.singleplayer: (context, state, data) => const PlaySingleplayerScreen(),
         // TestStack(),
         // CubeTestWidget(Cube()),
-        PageRoutes.multiplayer: (context, state, data) =>
-        const PlayMultiplayerScreen(),
-        PageRoutes.multiplayerGame: (context, state, data) =>
-            PlayMultiplayerScreen(
+        PageRoutes.multiplayer: (context, state, data) => const PlayMultiplayerScreen(),
+        PageRoutes.multiplayerGame: (context, state, data) => PlayMultiplayerScreen(
               gameId: state.pathParameters['gameId'],
             ),
       },
@@ -73,11 +72,11 @@ class MyApp extends StatelessWidget {
         title: 'Flutter Puzzle Hack',
         theme: ThemeData(
           primarySwatch: Colors.green,
+          primaryTextTheme: const TextTheme(labelMedium: TextStyle(color: Colors.greenAccent)),
         ),
         routerDelegate: routerDelegate,
         routeInformationParser: BeamerParser(),
-        backButtonDispatcher:
-            BeamerBackButtonDispatcher(delegate: routerDelegate),
+        backButtonDispatcher: BeamerBackButtonDispatcher(delegate: routerDelegate),
       ),
     );
   }

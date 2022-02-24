@@ -1,3 +1,5 @@
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:beamer/beamer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hack/components/keyboard_indicator.dart';
 import 'package:flutter_hack/models/cube.dart';
@@ -42,10 +44,28 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
   Widget build(BuildContext context) {
     _nodeAttachment.reparent();
     return Scaffold(
+      backgroundColor: Colors.black87,
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Spacer(flex: 1),
-          // Expanded(flex: 4, child: CubeWidget(cube)),
+          Expanded(
+            flex: 1,
+            child: FittedBox(
+              alignment: Alignment.centerLeft,
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                hoverColor: Colors.deepPurple.withOpacity(0.15),
+                onTap: () => Beamer.of(context).beamBack(),
+                child: const Padding(
+                  padding: EdgeInsets.all(3),
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: Colors.green,
+                  ),
+                ),
+              ),
+            ),
+          ),
           Expanded(
             flex: 5,
             child: Center(child: CubeWidget(cube: cube)),
@@ -56,13 +76,17 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: const [
+              children: [
                 Center(
-                  child: Text(
-                    "A",
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: AutoSizeText(
+                      "A",
+                      style: Theme.of(context).primaryTextTheme.labelMedium?.copyWith(fontSize: 200),
+                    ),
                   ),
                 ),
-                ShiftIndicator(),
+                const ShiftIndicator(),
               ],
             ),
           ),
@@ -71,13 +95,17 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: const [
+              children: [
                 Center(
-                  child: Text(
-                    "S",
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: AutoSizeText(
+                      "S",
+                      style: Theme.of(context).primaryTextTheme.labelMedium?.copyWith(fontSize: 200),
+                    ),
                   ),
                 ),
-                AltIndicator(),
+                const AltIndicator(),
               ],
             ),
           ),

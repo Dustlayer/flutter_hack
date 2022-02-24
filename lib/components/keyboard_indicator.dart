@@ -33,9 +33,12 @@ class _ShiftIndicatorState extends State<ShiftIndicator> with SingleTickerProvid
         }
         return RotationTransition(
           turns: Tween(begin: 0.0, end: 0.25).animate(_controller),
-          child: const FittedBox(
+          child: FittedBox(
             fit: BoxFit.fill,
-            child: Icon(Icons.height_rounded),
+            child: Icon(
+              Icons.height_rounded,
+              color: Theme.of(context).primaryColor,
+            ),
           ),
         );
       },
@@ -73,9 +76,12 @@ class _AltIndicatorState extends State<AltIndicator> with SingleTickerProviderSt
         }
         return RotationTransition(
           turns: Tween(begin: 0.0, end: 0.25).animate(_controller),
-          child: const FittedBox(
+          child: FittedBox(
             fit: BoxFit.fill,
-            child: Icon(Icons.height_rounded),
+            child: Icon(
+              Icons.height_rounded,
+              color: Theme.of(context).primaryColor,
+            ),
           ),
         );
       },
