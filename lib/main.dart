@@ -47,7 +47,7 @@ class MyApp extends StatelessWidget {
   final routerDelegate = BeamerDelegate(
     locationBuilder: RoutesLocationBuilder(
       routes: {
-        PageRoutes.home: (context, state, data) => HomeScreen(),
+        PageRoutes.home: (context, state, data) => const HomeScreen(),
         PageRoutes.leaderboard: (context, state, data) => const LeaderboardScreen(),
         // '/play': (context, state, data) => PlayScreen(),
         PageRoutes.singleplayer: (context, state, data) => const PlaySingleplayerScreen(),

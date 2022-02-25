@@ -29,7 +29,7 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
     _nodeAttachment = focus.attach(context, onKey: (node, event) {
       Provider.of<KeyboardMetaKeysManager>(context, listen: false).setWithEvent(event);
 
-      return KeyEventResult.handled;
+      return KeyEventResult.skipRemainingHandlers;
     });
     focus.requestFocus();
   }
@@ -38,6 +38,12 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
   void dispose() {
     focus.dispose();
     super.dispose();
+  }
+
+  void _onNextCube(Cube nextCube) {
+    setState(() {
+      cube = nextCube;
+    });
   }
 
   @override
@@ -55,7 +61,8 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
               child: InkWell(
                 customBorder: const CircleBorder(),
                 hoverColor: Colors.deepPurple.withOpacity(0.15),
-                onTap: () => Beamer.of(context).beamBack(),
+                onTap: () =>
+                    Beamer.of(context).canBeamBack ? Beamer.of(context).beamBack() : Navigator.of(context).maybePop(),
                 child: const Padding(
                   padding: EdgeInsets.all(3),
                   child: Icon(
@@ -68,7 +75,11 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
           ),
           Expanded(
             flex: 5,
-            child: Center(child: CubeWidget(cube: cube)),
+            child: Center(
+                child: CubeWidget(
+              cube: cube,
+              onNextCube: _onNextCube,
+            )),
           ),
           const Spacer(flex: 1),
           Expanded(

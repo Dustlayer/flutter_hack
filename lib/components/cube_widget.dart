@@ -13,14 +13,16 @@ import 'package:provider/provider.dart';
 import 'cube_face_widget.dart';
 
 class CubeWidget extends StatefulWidget {
-  Cube cube;
-  
+  final Cube cube;
+
   final Key cubeKey = const ValueKey("cube");
   final Key cubeTransitionKey = const ValueKey("cube");
   final Key nextCubeKey = const ValueKey("nextCube");
   final Key nextCubeTransitionKey = const ValueKey("nextCube");
 
-  CubeWidget({Key? key, required this.cube}) : super(key: key);
+  final Function(Cube) onNextCube;
+
+  const CubeWidget({Key? key, required this.cube, required this.onNextCube}) : super(key: key);
 
   @override
   _CubeWidgetState createState() => _CubeWidgetState();
@@ -29,11 +31,12 @@ class CubeWidget extends StatefulWidget {
 class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1000),
+    duration: const Duration(milliseconds: 500),
   );
   Cube? _nextCube;
   int _turnYDirection = 0;
   int _turnXDirection = 0;
+
   // values will be overriden when animation starts
   FractionalOffset _frontAnimationAlignment = FractionalOffset.centerRight;
   FractionalOffset _nextAnimationAlignment = FractionalOffset.centerLeft;
@@ -44,57 +47,63 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
   );
 
   void _rotateToRight() {
-    _nextCube = widget.cube.deepCopy();
-    _nextCube!.turnLeft();
-    _turnYDirection = 0;
-    _turnXDirection = -1;
-    _frontAnimationAlignment = FractionalOffset.centerRight;
-    _nextAnimationAlignment = FractionalOffset.centerLeft;
-    _controller.forward(from: 0.0);
+    setState(() {
+      _nextCube = widget.cube.deepCopy();
+      _nextCube!.turnLeft();
+      _turnYDirection = 0;
+      _turnXDirection = -1;
+      _frontAnimationAlignment = FractionalOffset.centerRight;
+      _nextAnimationAlignment = FractionalOffset.centerLeft;
+      _controller.forward(from: 0.0);
+    });
   }
 
   void _rotateToLeft() {
-    _nextCube = widget.cube.deepCopy();
-    _nextCube!.turnRight();
-    _turnYDirection = 0;
-    _turnXDirection = 1;
-    _frontAnimationAlignment = FractionalOffset.centerLeft;
-    _nextAnimationAlignment = FractionalOffset.centerRight;
-    _controller.forward(from: 0.0);
+    setState(() {
+      _nextCube = widget.cube.deepCopy();
+      _nextCube!.turnRight();
+      _turnYDirection = 0;
+      _turnXDirection = 1;
+      _frontAnimationAlignment = FractionalOffset.centerLeft;
+      _nextAnimationAlignment = FractionalOffset.centerRight;
+      _controller.forward(from: 0.0);
+    });
   }
 
   void _rotateToTop() {
-    _nextCube = widget.cube.deepCopy();
-    _nextCube!.turnDown();
-    _turnYDirection = -1;
-    _turnXDirection = 0;
-    _frontAnimationAlignment = FractionalOffset.topCenter;
-    _nextAnimationAlignment = FractionalOffset.bottomCenter;
-    _controller.forward(from: 0.0);
+    setState(() {
+      _nextCube = widget.cube.deepCopy();
+      _nextCube!.turnDown();
+      _turnYDirection = -1;
+      _turnXDirection = 0;
+      _frontAnimationAlignment = FractionalOffset.topCenter;
+      _nextAnimationAlignment = FractionalOffset.bottomCenter;
+      _controller.forward(from: 0.0);
+    });
   }
 
   void _rotateToBottom() {
-    _nextCube = widget.cube.deepCopy();
-    _nextCube!.turnUp();
-    _turnYDirection = 1;
-    _turnXDirection = 0;
-    _frontAnimationAlignment = FractionalOffset.bottomCenter;
-    _nextAnimationAlignment = FractionalOffset.topCenter;
-    _controller.forward(from: 0.0);
+    setState(() {
+      _nextCube = widget.cube.deepCopy();
+      _nextCube!.turnUp();
+      _turnYDirection = 1;
+      _turnXDirection = 0;
+      _frontAnimationAlignment = FractionalOffset.bottomCenter;
+      _nextAnimationAlignment = FractionalOffset.topCenter;
+      _controller.forward(from: 0.0);
+    });
   }
 
   @override
   void initState() {
-    animation.addListener(() {
-      setState(() {});
-    });
     animation.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         setState(() {
-          // todo: cube should be final...
-          widget.cube = _nextCube!;
+          // set widget.cube via parent
+          widget.onNextCube(_nextCube!);
           _nextCube = null;
-          widget.cube.checkIntegrity();
+          // commented for performance reasons
+          // widget.cube.checkIntegrity();
 
           // set data according to the desired state after animation
           _turnYDirection = 0;
@@ -113,6 +122,10 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
   }
 
   void _handleScroll(double direction) {
+    if (animation.status == AnimationStatus.forward) {
+      // dismiss scroll if animation is running
+      return;
+    }
     KeyboardMetaKeysManager manager = Provider.of<KeyboardMetaKeysManager>(context, listen: false);
     if (manager.isAltPressed) {
       if (manager.isShiftPressed) {
@@ -138,42 +151,70 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
       child: Stack(
         clipBehavior: Clip.antiAlias,
         children: <Widget>[
-          SlideTransition(
+          AnimatedBuilder(
             key: widget.cubeTransitionKey,
-            position: Tween<Offset>(
-              begin: Offset.zero,
-              end: Offset(1.0 * _turnXDirection, -1.0 * _turnYDirection),
-            ).animate(animation),
-            child: Container(
-              color: Colors.transparent,
-              child: Transform(
-                transform: Matrix4.identity()
-                  ..setEntry(3, 2, 0.003)
-                  ..rotateY(pi / 2 * animation.value * -_turnXDirection)
-                  ..rotateX(pi / 2 * animation.value * -_turnYDirection),
-                alignment: _frontAnimationAlignment,
-                child: CubeFace(key: widget.cubeKey, cube: widget.cube),
-              ),
+            animation: _controller,
+            child: CubeFace(
+              key: widget.cubeKey,
+              cube: widget.cube,
+              isFrontFace: true,
             ),
+            builder: (BuildContext context, Widget? child) {
+              Matrix4 transform = Matrix4.identity()..setEntry(3, 2, 0.003);
+              if (_turnXDirection != 0) {
+                transform.rotateY(pi / 2 * animation.value * -_turnXDirection);
+              } else if (_turnYDirection != 0) {
+                transform.rotateX(pi / 2 * animation.value * -_turnYDirection);
+              }
+              return SlideTransition(
+                key: widget.cubeTransitionKey,
+                position: Tween<Offset>(
+                  begin: Offset.zero,
+                  end: Offset(1.0 * _turnXDirection, -1.0 * _turnYDirection),
+                ).animate(animation),
+                child: Container(
+                  color: Colors.transparent,
+                  child: Transform(
+                    transform: transform,
+                    alignment: _frontAnimationAlignment,
+                    child: child,
+                  ),
+                ),
+              );
+            },
           ),
           if (_nextCube != null)
-            SlideTransition(
+            AnimatedBuilder(
               key: widget.nextCubeTransitionKey,
-              position: Tween<Offset>(
-                begin: Offset(-1.0 * _turnXDirection, 1.0 * _turnYDirection),
-                end: Offset.zero,
-              ).animate(animation),
-              child: Container(
-                color: Colors.transparent,
-                child: Transform(
-                  transform: Matrix4.identity()
-                    ..setEntry(3, 2, 0.003)
-                    ..rotateY(pi / 2 * (animation.value - 1) * -_turnXDirection)
-                    ..rotateX(pi / 2 * (animation.value - 1) * -_turnYDirection),
-                  alignment: _nextAnimationAlignment,
-                  child: CubeFace(key: widget.nextCubeKey, cube: _nextCube!),
-                ),
+              animation: _controller,
+              child: CubeFace(
+                key: widget.nextCubeKey,
+                cube: _nextCube!,
+                isFrontFace: false,
               ),
+              builder: (BuildContext context, Widget? child) {
+                Matrix4 transform = Matrix4.identity()..setEntry(3, 2, 0.003);
+                if (_turnXDirection != 0) {
+                  transform.rotateY(pi / 2 * (animation.value - 1) * -_turnXDirection);
+                } else if (_turnYDirection != 0) {
+                  transform.rotateX(pi / 2 * (animation.value - 1) * -_turnYDirection);
+                }
+                return SlideTransition(
+                  key: widget.nextCubeTransitionKey,
+                  position: Tween<Offset>(
+                    begin: Offset(-1.0 * _turnXDirection, 1.0 * _turnYDirection),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: Container(
+                    color: Colors.transparent,
+                    child: Transform(
+                      transform: transform,
+                      alignment: _nextAnimationAlignment,
+                      child: child,
+                    ),
+                  ),
+                );
+              },
             ),
           Positioned.fill(
             child: Listener(

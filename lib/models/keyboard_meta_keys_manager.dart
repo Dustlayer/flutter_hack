@@ -21,8 +21,13 @@ class KeyboardMetaKeysManager extends ChangeNotifier {
     // there is a bug with handling shift and alt at the same time, so falling back to "normal" keys
     /*_isShiftPressed = event.isShiftPressed;
     _isAltPressed = event.isAltPressed;*/
+    bool oldIsShiftPressed = _isShiftPressed;
+    bool oldIsAltPressed = _isAltPressed;
     _isShiftPressed = event.isKeyPressed(LogicalKeyboardKey.keyA);
     _isAltPressed = event.isKeyPressed(LogicalKeyboardKey.keyS);
-    notifyListeners();
+    if (_isShiftPressed != oldIsShiftPressed || _isAltPressed != oldIsAltPressed) {
+      // only notify if a value actually changed to reduce redraws
+      notifyListeners();
+    }
   }
 }
