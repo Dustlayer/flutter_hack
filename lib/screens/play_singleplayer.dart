@@ -18,7 +18,7 @@ class PlaySingleplayerScreen extends StatefulWidget {
 class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with SingleTickerProviderStateMixin {
   late final FocusNode focus;
   late final FocusAttachment _nodeAttachment;
-  Cube cube = Cube.random();
+  Cube cube = Cube.generate();
 
   // bool isShiftPressed = false;
 
@@ -76,10 +76,10 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
           Expanded(
             flex: 5,
             child: Center(
-                child: CubeWidget(
-              cube: cube,
-              onNextCube: _onNextCube,
-            )),
+              child: CubeWidget(
+                the_cube: cube,
+              ),
+            ),
           ),
           const Spacer(flex: 1),
           Expanded(

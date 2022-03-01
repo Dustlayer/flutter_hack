@@ -8,10 +8,11 @@ import '../models/cube.dart';
 import '../models/keyboard_meta_keys_manager.dart';
 
 class CubeFace extends StatefulWidget {
-  final Cube cube;
+  final Face face;
   final bool isFrontFace;
+  final Block Function(CubeActionCall) onAction;
 
-  const CubeFace({Key? key, required this.cube, required this.isFrontFace}) : super(key: key);
+  const CubeFace({Key? key, required this.face, required this.isFrontFace, required this.onAction}) : super(key: key);
 
   @override
   _CubeFaceState createState() => _CubeFaceState();
@@ -23,6 +24,8 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
     vsync: this,
   );
   List<CubeActionCall> actionQueue = List.empty(growable: true);
+  Block? nextBlock;
+  CubeActionCall? nextAction;
 
   @override
   void initState() {
@@ -31,19 +34,7 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
       // so the queue must be empty to react to next queue item
       if (status == AnimationStatus.completed && actionQueue.isNotEmpty) {
         // update cube object and remove action from queue
-        setState(() {
-          CubeActionCall call = actionQueue[0];
-          actionQueue.removeAt(0);
-          _controller.reset();
-          // update duration for next animation,
-          // otherwise duration stays the same from _handleScroll
-          _controller.duration = _calcAnimationDuration();
-          // update cube after animation played
-          widget.cube.executeCubeAction(call);
-
-          // commented for performance reasons
-          // widget.cube.checkIntegrity();
-        });
+        startNextAnimaton();
       }
     });
     super.initState();
@@ -78,12 +69,10 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
     } else if (!manager.isShiftPressed && !scrolledUp) {
       actionQueue.add(CubeActionCall(CubeAction.turnColumnUp, columnIndex));
     }
+
     // start animation if queue was empty before
     if (actionQueue.length == 1) {
-      setState(() {
-        _controller.duration = _calcAnimationDuration();
-        _controller.forward(from: 0);
-      });
+      startNextAnimaton();
     } else if (actionQueue.length > 1) {
       // accelerate animation, scale with queue length
       _controller.duration = _calcAnimationDuration();
@@ -92,10 +81,41 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
     }
   }
 
+  void startNextAnimaton() {
+    setState(() {
+      if (actionQueue.isNotEmpty) {
+        nextAction = actionQueue.removeAt(0);
+        nextBlock = widget.onAction(nextAction!);
+
+        // reset controller
+        _controller.duration = _calcAnimationDuration();
+        _controller.forward(from: 0);
+
+        // set directions
+      } else {
+        _controller.reset();
+        nextBlock = null;
+        nextAction = null;
+      }
+
+      void printGrid<T>(List<List<T>> grid) {
+        for (int i = 0; i < grid.length; i++) {
+          String line = "";
+          for (int j = 0; j < grid.length; j++) {
+            line += "${grid[j][i]}  ";
+          }
+
+          print(line);
+        }
+      }
+      printGrid(widget.face.blocks);
+    });
+  }
+
   int _getNextRowIndex(CubeActionCall call, int indexRow, int indexColumn) {
     int result = indexRow;
     if ([CubeAction.turnColumnUp, CubeAction.turnColumnDown].contains(call.action) && call.index == indexColumn) {
-      result = call.action == CubeAction.turnColumnUp ? indexRow - 1 : indexRow + 1;
+      result = call.action == CubeAction.turnColumnUp ? indexRow + 1 : indexRow - 1;
     }
     return result;
   }
@@ -110,10 +130,11 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final int cubeWidth = widget.cube.width;
-    final int cubeHeight = widget.cube.height;
+    const int cubeWidth = kSIZE;
+    const int cubeHeight = kSIZE;
 
-    CubeActionCall? currentAction = actionQueue.isNotEmpty ? actionQueue[0] : null;
+    // CubeActionCall? currentAction = actionQueue.isNotEmpty ? actionQueue[0] : null;
+
     Widget returnWidget = Center(
       child: AspectRatio(
         aspectRatio: 1,
@@ -131,15 +152,15 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
                 (index) {
                   final int indexRow = index ~/ cubeWidth;
                   final int indexColumn = index % cubeWidth;
-                  final Block block = widget.cube.front.blocks[indexRow][indexColumn];
+                  final Block block = widget.face.blocks[indexColumn][indexRow];
                   int nextIndexRow = indexRow;
                   int nextIndexColumn = indexColumn;
-                  if (currentAction != null) {
-                    nextIndexRow = _getNextRowIndex(currentAction, indexRow, indexColumn);
-                    nextIndexColumn = _getNextColumnIndex(currentAction, indexRow, indexColumn);
+                  if (nextBlock != null) {
+                    nextIndexRow = _getNextRowIndex(nextAction!, indexRow, indexColumn);
+                    nextIndexColumn = _getNextColumnIndex(nextAction!, indexRow, indexColumn);
                   }
                   return PositionedTransition(
-                    key: ObjectKey(block),
+                    // key: ObjectKey(block),
                     rect: RelativeRectTween(
                       begin: RelativeRect.fromLTRB(
                         indexColumn * width1X,
@@ -169,38 +190,35 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
                 List.generate(
                   2 * cubeWidth + 2 * cubeWidth,
                   (index) {
-                    // generate Tiles outside Bounds of cube
-                    Block block = Block("Dummy-ID", 0);
+                    // generate Tiles outside Bounds of cube;
                     int indexRow = -1;
                     int indexColumn = -1;
                     if (index ~/ cubeWidth == 0) {
                       // in row above first row
                       indexRow = -1;
                       indexColumn = index % cubeWidth;
-                      block = widget.cube.front.top.blocks[cubeHeight - 1][indexColumn];
                     } else if (index < cubeWidth + 2 * cubeHeight) {
                       // left and right side outside of cube
                       int normalizedIndex = index - cubeWidth;
                       indexRow = normalizedIndex ~/ 2;
                       indexColumn = normalizedIndex % 2 == 0 ? -1 : cubeWidth;
-                      block = indexColumn == -1
-                          ? widget.cube.front.left.blocks[indexRow][cubeWidth - 1]
-                          : widget.cube.front.right.blocks[indexRow][0];
                     } else {
                       // row below cube
                       int normalizedIndex = index - cubeWidth - 2 * cubeHeight;
                       indexRow = cubeHeight;
                       indexColumn = normalizedIndex % cubeWidth;
-                      block = widget.cube.front.bottom.blocks[0][indexColumn];
                     }
                     int nextIndexRow = indexRow;
                     int nextIndexColumn = indexColumn;
-                    if (currentAction != null) {
-                      nextIndexRow = _getNextRowIndex(currentAction, indexRow, indexColumn);
-                      nextIndexColumn = _getNextColumnIndex(currentAction, indexRow, indexColumn);
+                    if (nextAction != null) {
+                      nextIndexRow = _getNextRowIndex(nextAction!, indexRow, indexColumn);
+                      nextIndexColumn = _getNextColumnIndex(nextAction!, indexRow, indexColumn);
                     }
+
+                    Block block = nextBlock ?? Block("Dummy-Id");
+
                     return PositionedTransition(
-                      key: ObjectKey(block),
+                      // key: ObjectKey(block),
                       rect: RelativeRectTween(
                         begin: RelativeRect.fromLTRB(
                           indexColumn * width1X,
@@ -258,10 +276,6 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
         ),
       ),
     );
-    // start animation, statusListener will handle state update
-    if (currentAction != null) {
-      _controller.forward(from: 0);
-    }
     return returnWidget;
   }
 }
@@ -279,7 +293,7 @@ class TestCubeTile extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border.all(),
           borderRadius: BorderRadius.circular(15),
-          color: Color(_block.value),
+          color: Colors.lightBlue,
         ),
         alignment: Alignment.center,
         child: Text(

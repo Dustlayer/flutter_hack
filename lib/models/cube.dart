@@ -4,229 +4,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-class Block {
-  String id;
-  int value;
-
-  Block(this.id, this.value);
-
-  @override
-  String toString() => 'Block $id (value=$value)';
-}
-
-class Face {
-  late Face left, right, top, bottom;
-  List<List<Block>> blocks;
-
-  List<String> actionTrace = List.empty(growable: true);
-
-  final int _width, _height;
-  bool _isShifting = false;
-
-  int get width => _width;
-
-  int get height => _height;
-
-  Face(this.blocks, int width, int height)
-      : _width = width,
-        _height = height;
-
-  factory Face.random(int width, int height, String id) {
-    var random = Random();
-
-    List<List<Block>> blocks = List.empty(growable: true);
-    for (int r = 0; r < height; r++) {
-      List<Block> row = List.empty(growable: true);
-      for (int c = 0; c < width; c++) {
-        var color = Color.fromARGB(255, random.nextInt(255), random.nextInt(255), random.nextInt(255));
-        row.add(Block("$r-$c ($id)", color.value)); // use color.value to convert to hex as value is an int
-      }
-      blocks.add(row);
-    }
-
-    return Face(blocks, width, height);
-  }
-
-  factory Face.fromFace(Face other) {
-    // silly deep copy for block list
-    List<List<Block>> blocksCopy = List.empty(growable: true);
-    for (List<Block> row in other.blocks) {
-      List<Block> rowCopy = List.empty(growable: true);
-
-      for (Block block in row) {
-        rowCopy.add(block);
-      }
-      blocksCopy.add(rowCopy);
-    }
-
-    Face out = Face(blocksCopy, other._width, other._height);
-    out.actionTrace.addAll(other.actionTrace);
-
-    return out;
-  }
-
-  void init(Face left, Face right, Face top, Face bottom) {
-    this.left = left;
-    this.right = right;
-    this.top = top;
-    this.bottom = bottom;
-  }
-
-  void shiftUp(int colIndex) {
-    if (colIndex < height && colIndex >= 0) {
-      top.pushFromBottom(colIndex, blocks.first[colIndex]);
-      actionTrace.add("shiftUp $colIndex");
-    }
-  }
-
-  void shiftDown(int colIndex) {
-    if (colIndex < height && colIndex >= 0) {
-      bottom.pushFromTop(colIndex, blocks.last[colIndex]);
-      actionTrace.add("shiftDown $colIndex");
-    }
-  }
-
-  void shiftRight(int rowIndex) {
-    if (rowIndex < width && rowIndex >= 0) {
-      right.pushFromLeft(rowIndex, blocks[rowIndex].last);
-      actionTrace.add("shiftRight $rowIndex");
-    }
-  }
-
-  void shiftLeft(int rowIndex) {
-    if (rowIndex < width && rowIndex >= 0) {
-      left.pushFromRight(rowIndex, blocks[rowIndex].first);
-      actionTrace.add("shiftLeft $rowIndex");
-    }
-  }
-
-  void pushFromLeft(int rowIndex, Block block) {
-    if (!_isShifting) {
-      _isShifting = true;
-      List<Block> row = blocks[rowIndex];
-      row.insert(0, block);
-      Block overflow = row.removeLast();
-      right.pushFromLeft(rowIndex, overflow);
-      _isShifting = false;
-    }
-  }
-
-  void pushFromRight(int rowIndex, Block block) {
-    if (!_isShifting) {
-      _isShifting = true;
-      List<Block> row = blocks[rowIndex];
-      row.add(block);
-      Block overflow = row.removeAt(0);
-      left.pushFromRight(rowIndex, overflow);
-      _isShifting = false;
-    }
-  }
-
-  void pushFromTop(int colIndex, Block block) {
-    // insert at top and 'push' all blocks down once
-    if (!_isShifting) {
-      _isShifting = true;
-
-      Block prev = block;
-      for (int i = 0; i < blocks.length; i++) {
-        Block curr = blocks[i][colIndex];
-        blocks[i][colIndex] = prev;
-        prev = curr;
-      }
-
-      // prev now is bottommost block -> push to next face
-      bottom.pushFromTop(colIndex, prev);
-      _isShifting = false;
-    }
-  }
-
-  void pushFromBottom(int colIndex, Block block) {
-    if (!_isShifting) {
-      _isShifting = true;
-      // insert at bottom and 'push' all blocks up once
-      Block prev = block;
-      for (int i = blocks.length - 1; 0 <= i; i--) {
-        Block curr = blocks[i][colIndex];
-        blocks[i][colIndex] = prev;
-        prev = curr;
-      }
-
-      // prev now is topmost block -> push to next face
-      top.pushFromBottom(colIndex, prev);
-      _isShifting = false;
-    }
-  }
-
-  void cycleClockwise() {
-    // top -> right -> bottom -> left -> top
-
-    var tmp = top;
-    top = left;
-    left = bottom;
-    bottom = right;
-    right = tmp;
-
-    // cycle blocks
-    blocks = rotateBlocks(blocks);
-
-    actionTrace.add("cycleClockwise");
-  }
-
-  void cycleCounterClockwise() {
-    // top -> left -> bottom -> right -> top
-
-    // cycle faces
-    var tmpFace = top;
-    top = right;
-    right = bottom;
-    bottom = left;
-    left = tmpFace;
-
-    // cycle blocks
-    blocks = rotateBlocks(blocks, counterClockwise: true);
-
-    actionTrace.add("cycleCounterClockwise");
-  }
-
-  static List<List<Block>> rotateBlocks(List<List<Block>> blocks, {bool counterClockwise = false}) {
-    int m = blocks.length;
-    int n = blocks[0].length;
-
-    int flip = counterClockwise ? -1 : 1;
-
-    int cx = n ~/ 2;
-    int cy = m ~/ 2;
-
-    List<List<Block>> rotated = List.generate(
-      blocks.length,
-          (index) =>
-          List.generate(
-            blocks[0].length,
-                (index) => Block("THIS SHOULD NOT BE VISIBLE", -1),
-            growable: true,
-          ),
-      growable: true,
-    );
-
-    for (int r = 0; r < m; r++) {
-      for (int c = 0; c < n; c++) {
-        int x = c - cx;
-        int y = r - cy;
-
-        int x_ = -flip * y;
-        int y_ = flip * x;
-
-        int r_ = (y_ + cy).toInt();
-        int c_ = (x_ + cx).toInt();
-
-
-        rotated[r_][c_] = blocks[r][c];
-      }
-    }
-
-    return rotated;
-  }
-}
+const String kFORKED = "forked";
+const int kSIZE = 3;
 
 enum CubeAction {
   turnRowRight,
@@ -245,173 +24,256 @@ class CubeActionCall {
   String toString() => "$action ($index)";
 }
 
-class Cube {
-  late Face front;
-  int width;
-  int height;
+// grid:
+//   column major
+// directions:
+//  1 -> clockwise
+// -1 -> counter clockwise
+void cycleGrid<T>(List<List<T>> grid, int size, int direction) {
+  if (size % 2 == 0) throw UnimplementedError(); // todo: could fix for even grids - lazy me
 
-  List<String> actionTrace = List.empty(growable: true);
+  int start = -size ~/ 2;
+  int halfSize = (size + 1) ~/ 2;
 
-  Cube(this.front, Face right, Face back, Face left, Face top, Face bottom)
-      : width = front.width,
-        height = front.height {
-    // set up face references
-    // the 'strips' are
-    // horizontal: font right back left front
-    // vertical: front top back bottom front
+  for (int i = 0; i < halfSize; i++) {
+    for (int j = 0; j < halfSize - 1; j++) {
+      T item = grid[i][j];
+      int x = start + i;
+      int y = start + j;
 
-    front.init(left, right, top, bottom);
-    right.init(front, back, top, bottom);
-    back.init(right, left, bottom, top);
-    left.init(back, front, top, bottom);
+      // its a square -> 4 block per cycle
+      for (int r = 0; r < 4; r++) {
+        int tmpX = x;
+        x = -direction * y;
+        y = direction * tmpX;
 
-    top.init(left, right, back, front);
-    bottom.init(left, right, front, back);
-  }
+        // local coordinates (lx, ly € [0, ... size])
+        int lx = x - start;
+        int ly = y - start;
 
-  Cube.linked(this.front)
-      : width = front.width,
-        height = front.height;
-
-  factory Cube.random({int width = 3, int height = 3}) {
-    return Cube(
-      Face.random(width, height, "front"),
-      Face.random(width, height, "right"),
-      Face.random(width, height, "back"),
-      Face.random(width, height, "left"),
-      Face.random(width, height, "top"),
-      Face.random(width, height, "bottom"),
-    );
-  }
-
-  void turnLeft() {
-    front.top.cycleClockwise();
-    front.bottom.cycleCounterClockwise();
-
-    front = front.right;
-
-    actionTrace.add("turnLeft");
-  }
-
-  void turnRight() {
-    front.top.cycleCounterClockwise();
-    front.bottom.cycleClockwise();
-
-    front = front.left;
-
-    actionTrace.add("turnRight");
-  }
-
-  void turnUp() {
-    front.right.cycleClockwise();
-    front.left.cycleCounterClockwise();
-
-    front = front.bottom;
-
-    actionTrace.add("turnUp");
-  }
-
-  void turnDown() {
-    // for what?! - ¯\_(ツ)_/¯
-    front.right.cycleCounterClockwise();
-    front.left.cycleClockwise();
-
-    front = front.top;
-
-    actionTrace.add("turnDown");
-  }
-
-  void turnRowLeft(int rowIndex) {
-    front.shiftLeft(rowIndex);
-
-    actionTrace.add("turnRowLeft $rowIndex");
-  }
-
-  void turnRowRight(int rowIndex) {
-    front.shiftRight(rowIndex);
-
-    actionTrace.add("turnRowRight $rowIndex");
-  }
-
-  void turnColumnUp(int colIndex) {
-    front.shiftUp(colIndex);
-
-    actionTrace.add("turnColumnUp $colIndex");
-  }
-
-  void turnColumnDown(int colIndex) {
-    front.shiftDown(colIndex);
-
-    actionTrace.add("turnColumnDown $colIndex");
-  }
-
-  void executeCubeAction(CubeActionCall actionCall) {
-    switch (actionCall.action) {
-      case CubeAction.turnColumnUp:
-        {
-          turnColumnUp(actionCall.index);
-        }
-        break;
-      case CubeAction.turnColumnDown:
-        {
-          turnColumnDown(actionCall.index);
-        }
-        break;
-      case CubeAction.turnRowLeft:
-        {
-          turnRowLeft(actionCall.index);
-        }
-        break;
-      case CubeAction.turnRowRight:
-        {
-          turnRowRight(actionCall.index);
-        }
-        break;
+        T tmp = grid[lx][ly];
+        grid[lx][ly] = item;
+        item = tmp;
+      }
     }
   }
+}
 
-  Cube deepCopy() {
-    Face newFront = Face.fromFace(front);
-    Face newRight = Face.fromFace(front.right);
-    Face newBack = Face.fromFace(front.left.left);
-    Face newLeft = Face.fromFace(front.left);
-    Face newTop = Face.fromFace(front.top);
-    Face newBottom = Face.fromFace(front.bottom);
+//
+// Helper class to create empty 'arrays' (lists with initial null values) (still sucks lol)
+class FNS<T> { // aka fuck null safety
 
-    Cube out = Cube(newFront, newRight, newBack, newLeft, newTop, newBottom);
-    out.actionTrace.addAll(actionTrace);
+  T? _data;
+  T get value => _data!;
+  set value(T? data) => _data = data;
+
+  FNS([this._data]);
+
+}
+
+class Block {
+  String id;
+
+  Block(this.id);
+
+  @override
+  String toString() => id;
+}
+
+class Face {
+  List<List<Block>> blocks; // column major -> block = blocks[x (row)][y (column)];
+  late Face _left, _right, _up, _down;
+  bool moving = false;
+
+  // for debugging
+  String id;
+
+  Face(this.id, this.blocks);
+
+  factory Face.generate(String baseId) {
+    return Face(baseId, List.generate(kSIZE, (x) => List.generate(kSIZE, (y) => Block("$baseId-$x-$y"))));
+  }
+
+  void init(Face left, Face right, Face up, Face down) {
+    _left = left;
+    _right = right;
+    _up = up;
+    _down = down;
+  }
+
+  Block? push(Block block, Face from, int sliceIndex) {
+    if (moving) return null;
+
+    // figure out how to push
+    int x = 0, y = 0, dx = 0, dy = 0;
+    Face to;
+    if (from == _left) {
+      to = _right;
+      dx = 1;
+      y = sliceIndex;
+    } else if (from == _right) {
+      to = _left;
+      x = 2;
+      dx = -1;
+      y = sliceIndex;
+    } else if (from == _up) {
+      to = _down;
+      dy = 1;
+      x = sliceIndex;
+    } else if (from == _down) {
+      to = _up;
+      y = 2;
+      dy = -1;
+      x = sliceIndex;
+    } else {
+      throw kFORKED;
+    }
+
+    // push
+    moving = true;
+    Block leftover = _push(x, y, dx, dy, block);
+    Block out = to.push(leftover, this, sliceIndex) ?? block;
+    moving = false;
 
     return out;
   }
 
-  bool checkIntegrity() {
-    List<Block> seen = List.empty(growable: true);
+  Block _push(int x0, int y0, int dx, int dy, Block block) {
+    for (int i = 0; i < kSIZE; i++) {
+      int x = x0 + dx * i;
+      int y = y0 + dy * i;
+      Block tmp = blocks[x][y];
+      blocks[x][y] = block;
+      block = tmp;
+    }
+    return block;
+  }
 
-    List<Face> faces = [front, front.right, front.right.right, front.left, front.top, front.bottom];
-
-    for (Face face in faces) {
-      for (List<Block> row in face.blocks) {
-        for (Block block in row) {
-          if (seen.contains(block)) {
-            print("Integrity compromised!");
-            print("Cube trace:");
-            for (String action in actionTrace) {
-              print(action);
-            }
-
-            print("Face trace:");
-            for (String action in face.actionTrace) {
-              print(action);
-            }
-
-            return false;
-          }
-
-          seen.add(block);
-        }
-      }
+  void rotate(bool clockwise) {
+    // rotate connections to neighbours
+    if (clockwise) {
+      Face tmp = _right;
+      _right = _up;
+      _up = _left;
+      _left = _down;
+      _down = tmp;
+    } else {
+      Face tmp = _left;
+      _left = _up;
+      _up = _right;
+      _right = _down;
+      _down = tmp;
     }
 
-    return true;
+    // rotate blocks so orientation is right
+    cycleGrid(blocks, kSIZE, clockwise ? 1 : -1);
   }
+
+  Face get left => _left;
+  Face get right => _right;
+  Face get up => _up;
+  Face get down => _down;
+
+  // helper to get the actual next face in given direction
+  // because internally these might be mirrored (back face)
+  Face next(Face from) {
+    if (from == _left) {
+      return _right;
+    } else if (from == _right) {
+      return _left;
+    } else if (from == _up) {
+      return _down;
+    } else if (from == _down) {
+      return _up;
+    } else {
+      throw kFORKED;
+    }
+  }
+}
+
+class Cube {
+  Face front;
+  List<Face> faces;
+
+  Cube(this.front, this.faces);
+
+  factory Cube.generate() {
+    /// generate faces
+    Face front = Face.generate("F");
+    Face back = Face.generate("B");
+    Face up = Face.generate("U");
+    Face down = Face.generate("D");
+    Face left = Face.generate("L");
+    Face right = Face.generate("R");
+
+    /// init connections
+    front.init(left, right, up, down);
+    back.init(right, left, down, up);
+    right.init(front, back, up, down);
+    left.init(back, front, up, down);
+    up.init(left, right, back, front);
+    down.init(left, right, front, back);
+
+    return Cube(front, [front, back, up, down, left, right]);
+  }
+
+  Face rotateLeft() {
+    front.up.rotate(true);
+    front.down.rotate(true);
+    front = front.right;
+    return front;
+  }
+  Face rotateRight() {
+    front.up.rotate(true);
+    front.down.rotate(true);
+    front = front.left;
+    return front;
+  }
+  Face rotateUp() {
+    front.right.rotate(false);
+    front.left.rotate(true);
+    front = front.down;
+    return front;
+  }
+  Face rotateDown() {
+    front.right.rotate(true);
+    front.left.rotate(false);
+    front = front.up;
+    return front;
+  }
+
+  Block sliceLeft(int sliceIndex) {
+    return front.left.push(front.blocks.first[sliceIndex], front, sliceIndex)!;
+  }
+  Block sliceRight(int sliceIndex) {
+    return front.right.push(front.blocks.last[sliceIndex], front, sliceIndex)!;
+  }
+  Block sliceUp(int sliceIndex) {
+    return front.up.push(front.blocks[sliceIndex].first, front, sliceIndex)!;
+  }
+  Block sliceDown(int sliceIndex) {
+    return front.down.push(front.blocks[sliceIndex].last, front, sliceIndex)!;
+  }
+
+  Face get left => front.left;
+  Face get right => front.right;
+  Face get up => front.up;
+  Face get down => front.down;
+  Face get back => front.up.next(front);
+
+  Block executeCubeAction(CubeActionCall actionCall) {
+    switch (actionCall.action) {
+      case CubeAction.turnColumnUp:
+        return sliceDown(actionCall.index);
+      case CubeAction.turnColumnDown:
+        return sliceUp(actionCall.index);
+      case CubeAction.turnRowLeft:
+        return sliceLeft(actionCall.index);
+      case CubeAction.turnRowRight:
+        return sliceRight(actionCall.index);
+      default:
+        throw kFORKED;
+    }
+  }
+
 }

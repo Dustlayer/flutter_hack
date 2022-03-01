@@ -13,16 +13,14 @@ import 'package:provider/provider.dart';
 import 'cube_face_widget.dart';
 
 class CubeWidget extends StatefulWidget {
-  final Cube cube;
+  final Cube the_cube;
 
   final Key cubeKey = const ValueKey("cube");
   final Key cubeTransitionKey = const ValueKey("cube");
   final Key nextCubeKey = const ValueKey("nextCube");
   final Key nextCubeTransitionKey = const ValueKey("nextCube");
 
-  final Function(Cube) onNextCube;
-
-  const CubeWidget({Key? key, required this.cube, required this.onNextCube}) : super(key: key);
+  const CubeWidget({Key? key, required this.the_cube}) : super(key: key);
 
   @override
   _CubeWidgetState createState() => _CubeWidgetState();
@@ -33,7 +31,9 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
     vsync: this,
     duration: const Duration(milliseconds: 500),
   );
-  Cube? _nextCube;
+  late Face currentFace;
+  Face? nextFace;
+
   int _turnYDirection = 0;
   int _turnXDirection = 0;
 
@@ -48,8 +48,8 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
 
   void _rotateToRight() {
     setState(() {
-      _nextCube = widget.cube.deepCopy();
-      _nextCube!.turnLeft();
+      nextFace = widget.the_cube.rotateLeft();
+
       _turnYDirection = 0;
       _turnXDirection = -1;
       _frontAnimationAlignment = FractionalOffset.centerRight;
@@ -60,8 +60,7 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
 
   void _rotateToLeft() {
     setState(() {
-      _nextCube = widget.cube.deepCopy();
-      _nextCube!.turnRight();
+      nextFace = widget.the_cube.rotateRight();
       _turnYDirection = 0;
       _turnXDirection = 1;
       _frontAnimationAlignment = FractionalOffset.centerLeft;
@@ -72,8 +71,7 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
 
   void _rotateToTop() {
     setState(() {
-      _nextCube = widget.cube.deepCopy();
-      _nextCube!.turnDown();
+      nextFace = widget.the_cube.rotateDown();
       _turnYDirection = -1;
       _turnXDirection = 0;
       _frontAnimationAlignment = FractionalOffset.topCenter;
@@ -84,8 +82,7 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
 
   void _rotateToBottom() {
     setState(() {
-      _nextCube = widget.cube.deepCopy();
-      _nextCube!.turnUp();
+      nextFace = widget.the_cube.rotateUp();
       _turnYDirection = 1;
       _turnXDirection = 0;
       _frontAnimationAlignment = FractionalOffset.bottomCenter;
@@ -96,12 +93,13 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
 
   @override
   void initState() {
+    currentFace = widget.the_cube.front;
     animation.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         setState(() {
           // set widget.cube via parent
-          widget.onNextCube(_nextCube!);
-          _nextCube = null;
+          currentFace = nextFace!;
+          nextFace = null;
           // commented for performance reasons
           // widget.cube.checkIntegrity();
 
@@ -144,6 +142,10 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
     }
   }
 
+  Block _handleSliceMove(CubeActionCall action) {
+    return widget.the_cube.executeCubeAction(action);
+  }
+
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
@@ -156,8 +158,9 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
             animation: _controller,
             child: CubeFace(
               key: widget.cubeKey,
-              cube: widget.cube,
+              face: currentFace,
               isFrontFace: true,
+              onAction: _handleSliceMove,
             ),
             builder: (BuildContext context, Widget? child) {
               Matrix4 transform = Matrix4.identity()..setEntry(3, 2, 0.003);
@@ -183,14 +186,15 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
               );
             },
           ),
-          if (_nextCube != null)
+          if (nextFace != null)
             AnimatedBuilder(
               key: widget.nextCubeTransitionKey,
               animation: _controller,
               child: CubeFace(
                 key: widget.nextCubeKey,
-                cube: _nextCube!,
+                face: nextFace!,
                 isFrontFace: false,
+                onAction: _handleSliceMove,
               ),
               builder: (BuildContext context, Widget? child) {
                 Matrix4 transform = Matrix4.identity()..setEntry(3, 2, 0.003);
