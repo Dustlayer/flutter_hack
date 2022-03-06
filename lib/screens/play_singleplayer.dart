@@ -40,12 +40,6 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
     super.dispose();
   }
 
-  void _onNextCube(Cube nextCube) {
-    setState(() {
-      cube = nextCube;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     _nodeAttachment.reparent();
@@ -77,6 +71,7 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
             flex: 5,
             child: Center(
               child: CubeWidget(
+                key: ObjectKey(cube),
                 the_cube: cube,
               ),
             ),

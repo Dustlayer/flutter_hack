@@ -146,6 +146,10 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
     return widget.the_cube.executeCubeAction(action);
   }
 
+  Block _getNextBlock(CubeActionCall action) {
+    return widget.the_cube.forecastAction(action);
+  }
+
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
@@ -161,6 +165,7 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
               face: currentFace,
               isFrontFace: true,
               onAction: _handleSliceMove,
+              onNextBlock: _getNextBlock,
             ),
             builder: (BuildContext context, Widget? child) {
               Matrix4 transform = Matrix4.identity()..setEntry(3, 2, 0.003);
@@ -195,6 +200,7 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
                 face: nextFace!,
                 isFrontFace: false,
                 onAction: _handleSliceMove,
+                onNextBlock: _getNextBlock,
               ),
               builder: (BuildContext context, Widget? child) {
                 Matrix4 transform = Matrix4.identity()..setEntry(3, 2, 0.003);

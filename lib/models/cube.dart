@@ -1,9 +1,5 @@
 // ignore_for_file: avoid_print
 
-import 'dart:math';
-
-import 'package:flutter/material.dart';
-
 const String kFORKED = "forked";
 const int kSIZE = 3;
 
@@ -61,14 +57,14 @@ void cycleGrid<T>(List<List<T>> grid, int size, int direction) {
 
 //
 // Helper class to create empty 'arrays' (lists with initial null values) (still sucks lol)
-class FNS<T> { // aka fuck null safety
+class FNS<T> {
+  // aka fuck null safety
 
   T? _data;
   T get value => _data!;
   set value(T? data) => _data = data;
 
   FNS([this._data]);
-
 }
 
 class Block {
@@ -223,18 +219,21 @@ class Cube {
     front = front.right;
     return front;
   }
+
   Face rotateRight() {
     front.up.rotate(true);
     front.down.rotate(true);
     front = front.left;
     return front;
   }
+
   Face rotateUp() {
     front.right.rotate(false);
     front.left.rotate(true);
     front = front.down;
     return front;
   }
+
   Face rotateDown() {
     front.right.rotate(true);
     front.left.rotate(false);
@@ -245,12 +244,15 @@ class Cube {
   Block sliceLeft(int sliceIndex) {
     return front.left.push(front.blocks.first[sliceIndex], front, sliceIndex)!;
   }
+
   Block sliceRight(int sliceIndex) {
     return front.right.push(front.blocks.last[sliceIndex], front, sliceIndex)!;
   }
+
   Block sliceUp(int sliceIndex) {
     return front.up.push(front.blocks[sliceIndex].first, front, sliceIndex)!;
   }
+
   Block sliceDown(int sliceIndex) {
     return front.down.push(front.blocks[sliceIndex].last, front, sliceIndex)!;
   }
@@ -276,4 +278,19 @@ class Cube {
     }
   }
 
+  Block forecastAction(CubeActionCall call) {
+    // has to forecast the new block that is incoming to the face after said action is called
+    switch (call.action) {
+      case CubeAction.turnColumnUp:
+        return Block("turnUp");
+      case CubeAction.turnColumnDown:
+        return Block("turnDown");
+      case CubeAction.turnRowLeft:
+        return Block("turnLeft");
+      case CubeAction.turnRowRight:
+        return Block("turnRight");
+      default:
+        throw kFORKED;
+    }
+  }
 }
