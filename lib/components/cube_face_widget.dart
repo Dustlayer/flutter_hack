@@ -81,9 +81,9 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
     }
 
     if (manager.isShiftPressed && scrolledUp) {
-      actionQueue.add(CubeActionCall(CubeAction.turnRowLeft, rowIndex));
-    } else if (manager.isShiftPressed && !scrolledUp) {
       actionQueue.add(CubeActionCall(CubeAction.turnRowRight, rowIndex));
+    } else if (manager.isShiftPressed && !scrolledUp) {
+      actionQueue.add(CubeActionCall(CubeAction.turnRowLeft, rowIndex));
     } else if (!manager.isShiftPressed && scrolledUp) {
       actionQueue.add(CubeActionCall(CubeAction.turnColumnUp, columnIndex));
     } else if (!manager.isShiftPressed && !scrolledUp) {
@@ -126,9 +126,9 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
       case CubeAction.turnColumnDown:
         return call.index;
       case CubeAction.turnRowLeft:
-        return -1;
-      case CubeAction.turnRowRight:
         return kSIZE;
+      case CubeAction.turnRowRight:
+        return -1;
       default:
         throw kFORKED;
     }
