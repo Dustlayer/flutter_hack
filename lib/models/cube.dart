@@ -280,17 +280,38 @@ class Cube {
 
   Block forecastAction(CubeActionCall call) {
     // has to forecast the new block that is incoming to the face after said action is called
+    Face from;
+    int x, y;
     switch (call.action) {
       case CubeAction.turnColumnUp:
-        return Block("turnUp");
+        x = kSIZE - 1;
+        y = call.index;
+        from = down;
+        // return Block("turnUp");
+        break;
       case CubeAction.turnColumnDown:
-        return Block("turnDown");
+        x = 0;
+        y = call.index;
+        from = up;
+        // return Block("turnDown");
+        break;
       case CubeAction.turnRowLeft:
-        return Block("turnLeft");
+        x = call.index;
+        y = kSIZE - 1;
+        from = left;
+        // return Block("turnLeft");
+        break;
       case CubeAction.turnRowRight:
-        return Block("turnRight");
+        x = call.index;
+        y = 0;
+        from = right;
+        // return Block("turnRight");
+        break;
       default:
         throw kFORKED;
     }
+
+    Face to = front.next(from);
+    return to.blocks[y][x];
   }
 }
