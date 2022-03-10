@@ -295,12 +295,12 @@ class Cube {
         break;
       case CubeAction.turnRowLeft:
         x = call.index;
-        y = kSIZE - 1;
+        y = 0;
         from = left;
         break;
       case CubeAction.turnRowRight:
         x = call.index;
-        y = 0;
+        y = kSIZE - 1;
         from = right;
         break;
       default:
