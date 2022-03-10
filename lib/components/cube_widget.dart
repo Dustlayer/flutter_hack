@@ -142,8 +142,8 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
     }
   }
 
-  Block _handleSliceMove(CubeActionCall action) {
-    return widget.the_cube.executeCubeAction(action);
+  void _handleSliceMove(CubeActionCall action) {
+    widget.the_cube.executeCubeAction(action);
   }
 
   Block _getNextBlock(CubeActionCall action) {

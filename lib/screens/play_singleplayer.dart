@@ -1,6 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:beamer/beamer.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hack/components/keyboard_indicator.dart';
 import 'package:flutter_hack/models/cube.dart';
 import 'package:provider/provider.dart';
@@ -15,6 +16,8 @@ class PlaySingleplayerScreen extends StatefulWidget {
   _PlaySingleplayerScreenState createState() => _PlaySingleplayerScreenState();
 }
 
+void NoOp() {}
+
 class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with SingleTickerProviderStateMixin {
   late final FocusNode focus;
   late final FocusAttachment _nodeAttachment;
@@ -27,6 +30,10 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
     super.initState();
     focus = FocusNode(debugLabel: 'MetaKeysHandler');
     _nodeAttachment = focus.attach(context, onKey: (node, event) {
+      if (event.logicalKey == LogicalKeyboardKey.keyD) {
+        NoOp();
+      }
+
       Provider.of<KeyboardMetaKeysManager>(context, listen: false).setWithEvent(event);
 
       return KeyEventResult.skipRemainingHandlers;

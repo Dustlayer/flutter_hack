@@ -97,8 +97,8 @@ class Face {
     _down = down;
   }
 
-  Block? push(Block block, Face from, int sliceIndex) {
-    if (moving) return null;
+  void push(Block block, Face from, int sliceIndex) {
+    if (moving) return;
 
     // figure out how to push
     int x = 0, y = 0, dx = 0, dy = 0;
@@ -128,10 +128,8 @@ class Face {
     // push
     moving = true;
     Block leftover = _push(x, y, dx, dy, block);
-    Block out = to.push(leftover, this, sliceIndex) ?? block;
+    to.push(leftover, this, sliceIndex);
     moving = false;
-
-    return out;
   }
 
   Block _push(int x0, int y0, int dx, int dy, Block block) {
@@ -143,6 +141,51 @@ class Face {
       block = tmp;
     }
     return block;
+  }
+
+  Block predictPush(Block block, Face from, int sliceIndex) {
+    // figure out how to push
+    int x = 0, y = 0, dx = 0, dy = 0;
+    Face to;
+    if (from == _left) {
+      to = _right;
+      dx = 1;
+      y = sliceIndex;
+    } else if (from == _right) {
+      to = _left;
+      x = 2;
+      dx = -1;
+      y = sliceIndex;
+    } else if (from == _up) {
+      to = _down;
+      dy = 1;
+      x = sliceIndex;
+    } else if (from == _down) {
+      to = _up;
+      y = 2;
+      dy = -1;
+      x = sliceIndex;
+    } else {
+      throw kFORKED;
+    }
+
+
+    Block leftover = _predictPush(x, y, dx, dy);
+
+
+    // push
+    moving = true;
+    Block out = block;
+    if (!to.moving)  out = to.predictPush(leftover, this, sliceIndex);
+    moving = false;
+
+    return out;
+  }
+
+  Block _predictPush(int x0, int y0, int dx, int dy) {
+    int x = x0 + dx * (kSIZE - 1);
+    int y = y0 + dy * (kSIZE - 1);
+    return blocks[x][y];
   }
 
   void rotate(bool clockwise) {
@@ -214,8 +257,8 @@ class Cube {
   }
 
   Face rotateLeft() {
-    front.up.rotate(true);
-    front.down.rotate(true);
+    front.up.rotate(false);
+    front.down.rotate(false);
     front = front.right;
     return front;
   }
@@ -241,20 +284,36 @@ class Cube {
     return front;
   }
 
-  Block sliceLeft(int sliceIndex) {
-    return front.left.push(front.blocks.first[sliceIndex], front, sliceIndex)!;
+  void sliceLeft(int sliceIndex) {
+    front.left.push(front.blocks.first[sliceIndex], front, sliceIndex);
   }
 
-  Block sliceRight(int sliceIndex) {
-    return front.right.push(front.blocks.last[sliceIndex], front, sliceIndex)!;
+  void sliceRight(int sliceIndex) {
+    front.right.push(front.blocks.last[sliceIndex], front, sliceIndex);
   }
 
-  Block sliceUp(int sliceIndex) {
-    return front.up.push(front.blocks[sliceIndex].first, front, sliceIndex)!;
+  void sliceUp(int sliceIndex) {
+    front.up.push(front.blocks[sliceIndex].first, front, sliceIndex);
   }
 
-  Block sliceDown(int sliceIndex) {
-    return front.down.push(front.blocks[sliceIndex].last, front, sliceIndex)!;
+  void sliceDown(int sliceIndex) {
+    front.down.push(front.blocks[sliceIndex].last, front, sliceIndex);
+  }
+
+  Block predictSliceLeft(int sliceIndex) {
+    return front.left.predictPush(front.blocks.first[sliceIndex], front, sliceIndex);
+  }
+
+  Block predictSliceRight(int sliceIndex) {
+    return front.right.predictPush(front.blocks.last[sliceIndex], front, sliceIndex);
+  }
+
+  Block predictSliceUp(int sliceIndex) {
+    return front.up.predictPush(front.blocks[sliceIndex].first, front, sliceIndex);
+  }
+
+  Block predictSliceDown(int sliceIndex) {
+    return front.down.predictPush(front.blocks[sliceIndex].last, front, sliceIndex);
   }
 
   Face get left => front.left;
@@ -263,51 +322,33 @@ class Cube {
   Face get down => front.down;
   Face get back => front.up.next(front);
 
-  Block executeCubeAction(CubeActionCall actionCall) {
-    switch (actionCall.action) {
+  void executeCubeAction(CubeActionCall action) {
+    switch (action.action) {
       case CubeAction.turnColumnUp:
-        return sliceDown(actionCall.index);
+        return sliceDown(action.index);
       case CubeAction.turnColumnDown:
-        return sliceUp(actionCall.index);
+        return sliceUp(action.index);
       case CubeAction.turnRowLeft:
-        return sliceLeft(actionCall.index);
+        return sliceLeft(action.index);
       case CubeAction.turnRowRight:
-        return sliceRight(actionCall.index);
+        return sliceRight(action.index);
       default:
         throw kFORKED;
     }
   }
 
-  Block forecastAction(CubeActionCall call) {
-    // has to forecast the new block that is incoming to the face after said action is called
-    Face from;
-    int x, y;
-    switch (call.action) {
+  Block forecastAction(CubeActionCall action) {
+    switch (action.action) {
       case CubeAction.turnColumnUp:
-        x = kSIZE - 1;
-        y = call.index;
-        from = down;
-        break;
+        return predictSliceDown(action.index);
       case CubeAction.turnColumnDown:
-        x = 0;
-        y = call.index;
-        from = up;
-        break;
+        return predictSliceUp(action.index);
       case CubeAction.turnRowLeft:
-        x = call.index;
-        y = 0;
-        from = left;
-        break;
+        return predictSliceLeft(action.index);
       case CubeAction.turnRowRight:
-        x = call.index;
-        y = kSIZE - 1;
-        from = right;
-        break;
+        return predictSliceRight(action.index);
       default:
         throw kFORKED;
     }
-
-    Face to = front.next(from);
-    return to.blocks[y][x];
   }
 }

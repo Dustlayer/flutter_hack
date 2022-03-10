@@ -10,7 +10,7 @@ import '../models/keyboard_meta_keys_manager.dart';
 class CubeFace extends StatefulWidget {
   final Face face;
   final bool isFrontFace;
-  final Block Function(CubeActionCall) onAction;
+  final void Function(CubeActionCall) onAction;
   final Block Function(CubeActionCall) onNextBlock;
 
   const CubeFace(
@@ -188,7 +188,7 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
                     nextIndexColumn = _getNextColumnIndex(nextAction!, indexRow, indexColumn);
                   }
                   return PositionedTransition(
-                    key: ObjectKey(block),
+                    key: ValueKey("FOO$index"), // ObjectKey(block),
                     rect: RelativeRectTween(
                       begin: RelativeRect.fromLTRB(
                         indexColumn * width1X,
@@ -218,7 +218,7 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
 
               stackChildren.add(
                 PositionedTransition(
-                  key: ObjectKey(nextBlock),
+                  key: const ValueKey("BAR"), // ObjectKey(nextBlock),
                   rect: RelativeRectTween(
                     begin: RelativeRect.fromLTRB(
                       indexColumn * width1X,
@@ -233,7 +233,7 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
                       (cubeHeight - 1 - nextIndexRow) * height1X,
                     ),
                   ).animate(_curvedAnimation),
-                  child: TestCubeTile(nextBlock!, key: ObjectKey(nextBlock)),
+                  child: TestCubeTile(nextBlock!, key: const ValueKey("FOOBAR"), /* ObjectKey(nextBlock) */),
                 ),
               );
             }
