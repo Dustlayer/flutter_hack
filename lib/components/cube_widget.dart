@@ -14,13 +14,14 @@ import 'cube_face_widget.dart';
 
 class CubeWidget extends StatefulWidget {
   final Cube the_cube;
+  final Function() onMove;
 
   final Key cubeKey = const ValueKey("cube");
   final Key cubeTransitionKey = const ValueKey("cube");
   final Key nextCubeKey = const ValueKey("nextCube");
   final Key nextCubeTransitionKey = const ValueKey("nextCube");
 
-  const CubeWidget({Key? key, required this.the_cube}) : super(key: key);
+  const CubeWidget({Key? key, required this.the_cube, required this.onMove}) : super(key: key);
 
   @override
   _CubeWidgetState createState() => _CubeWidgetState();
@@ -100,8 +101,6 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
           // set widget.cube via parent
           currentFace = nextFace!;
           nextFace = null;
-          // commented for performance reasons
-          // widget.cube.checkIntegrity();
 
           // set data according to the desired state after animation
           _turnYDirection = 0;
@@ -126,6 +125,8 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
     }
     KeyboardMetaKeysManager manager = Provider.of<KeyboardMetaKeysManager>(context, listen: false);
     if (manager.isAltPressed) {
+      // callback to increase game turn counter
+      widget.onMove();
       if (manager.isShiftPressed) {
         if (direction.isNegative) {
           _rotateToRight();
@@ -143,6 +144,7 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
   }
 
   void _handleSliceMove(CubeActionCall action) {
+    widget.onMove();
     widget.the_cube.executeCubeAction(action);
   }
 

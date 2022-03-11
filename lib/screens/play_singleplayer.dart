@@ -7,6 +7,7 @@ import 'package:flutter_hack/models/cube.dart';
 import 'package:provider/provider.dart';
 
 import '../components/cube_widget.dart';
+import '../components/game_status_widget.dart';
 import '../models/keyboard_meta_keys_manager.dart';
 
 class PlaySingleplayerScreen extends StatefulWidget {
@@ -23,6 +24,9 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
   late final FocusNode focus;
   late final FocusAttachment _nodeAttachment;
   Cube cube = Cube.generate();
+  // game stats for the leaderboard
+  int _turnCounter = 0;
+  DateTime dateTimeStart = DateTime.now();
 
   // bool isShiftPressed = false;
 
@@ -49,6 +53,12 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
     super.dispose();
   }
 
+  void _handleMove() {
+    setState(() {
+      _turnCounter += 1;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     _nodeAttachment.reparent();
@@ -58,6 +68,7 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
+            key: UniqueKey(),
             flex: 1,
             child: FittedBox(
               alignment: Alignment.centerLeft,
@@ -78,11 +89,26 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
           ),
           Expanded(
             flex: 5,
-            child: Center(
-              child: CubeWidget(
-                key: ObjectKey(cube),
-                the_cube: cube,
-              ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Spacer(flex: 1),
+                Expanded(
+                  flex: 1,
+                  child: CubeWidget(
+                    key: ObjectKey(cube),
+                    the_cube: cube,
+                    onMove: _handleMove,
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: GameStatus(
+                    dateTimeStart: dateTimeStart,
+                    turnsCount: _turnCounter,
+                  ),
+                ),
+              ],
             ),
           ),
           const Spacer(flex: 1),

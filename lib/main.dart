@@ -49,16 +49,10 @@ class MyApp extends StatelessWidget {
       routes: {
         PageRoutes.home: (context, state, data) => const HomeScreen(),
         PageRoutes.leaderboard: (context, state, data) => const LeaderboardScreen(),
-        // '/play': (context, state, data) => PlayScreen(),
         PageRoutes.singleplayer: (context, state, data) => const PlaySingleplayerScreen(),
-        // TestStack(),
-        // CubeTestWidget(Cube()),
-        PageRoutes.multiplayer: (context, state, data) => const PlayMultiplayerScreen(),
-        PageRoutes.multiplayerGame: (context, state, data) => PlayMultiplayerScreen(
-              gameId: state.pathParameters['gameId'],
-            ),
       },
     ),
+    notFoundRedirectNamed: PageRoutes.home,
   );
 
   @override

@@ -58,6 +58,18 @@ class _AltIndicatorState extends State<AltIndicator> with SingleTickerProviderSt
     vsync: this,
     duration: const Duration(milliseconds: 150),
   );
+  late final CurvedAnimation _curvedAnimation = CurvedAnimation(
+    parent: _controller,
+    curve: Curves.easeInOut,
+  );
+
+  @override
+  void initState() {
+    _curvedAnimation.addListener(() {
+      setState(() {});
+    });
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -74,12 +86,21 @@ class _AltIndicatorState extends State<AltIndicator> with SingleTickerProviderSt
         } else {
           _controller.animateBack(0.0);
         }
-        return RotationTransition(
-          turns: Tween(begin: 0.0, end: 0.25).animate(_controller),
+        return ShaderMask(
+          blendMode: BlendMode.srcATop,
+          shaderCallback: (Rect bounds) {
+            return LinearGradient(
+              colors: [Colors.yellow, Colors.grey],
+              tileMode: TileMode.decal,
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              stops: [_curvedAnimation.value, 0],
+            ).createShader(bounds);
+          },
           child: FittedBox(
             fit: BoxFit.fill,
             child: Icon(
-              Icons.height_rounded,
+              Icons.rotate_90_degrees_ccw,
               color: Theme.of(context).primaryColor,
             ),
           ),
