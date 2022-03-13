@@ -11,10 +11,16 @@ class CubeFace extends StatefulWidget {
   final Face face;
   final bool isFrontFace;
   final void Function(CubeActionCall) onAction;
+  final void Function() onEndMove;
   final Block Function(CubeActionCall) onNextBlock;
 
   const CubeFace(
-      {Key? key, required this.face, required this.isFrontFace, required this.onAction, required this.onNextBlock})
+      {Key? key,
+      required this.face,
+      required this.isFrontFace,
+      required this.onAction,
+      required this.onNextBlock,
+      required this.onEndMove})
       : super(key: key);
 
   @override
@@ -49,9 +55,10 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
           _controller.duration = _calcAnimationDuration();
           // update cube after animation played
           widget.onAction(call);
-
-          // commented for performance reasons
-          // widget.cube.checkIntegrity();
+          // callback to signal that last move was done (for victory check)
+          if (actionQueue.isEmpty) {
+            widget.onEndMove();
+          }
         });
       } else if (status == AnimationStatus.completed && actionQueue.isEmpty) {
         _controller.reset();

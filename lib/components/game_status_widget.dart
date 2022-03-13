@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 class GameStatus extends StatefulWidget {
   final DateTime dateTimeStart;
   final int turnsCount;
+  final bool timerActive;
 
-  const GameStatus({Key? key, required this.dateTimeStart, required this.turnsCount}) : super(key: key);
+  const GameStatus({Key? key, required this.dateTimeStart, required this.turnsCount, this.timerActive = true})
+      : super(key: key);
 
   @override
   _GameStatusState createState() => _GameStatusState();
@@ -15,15 +17,41 @@ class GameStatus extends StatefulWidget {
 
 class _GameStatusState extends State<GameStatus> {
   DateTime dateTimeNow = DateTime.now();
+  late final Timer timer;
 
   @override
   void initState() {
-    Timer.periodic(const Duration(seconds: 1), (_) {
-      setState(() {
-        dateTimeNow = DateTime.now();
+    if (widget.timerActive) {
+      timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        setState(() {
+          dateTimeNow = DateTime.now();
+        });
       });
-    });
+    }
     super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant GameStatus oldWidget) {
+    // enable or disable timer if widget is updated
+    if (widget.timerActive != oldWidget.timerActive) {
+      if (!widget.timerActive) {
+        timer.cancel();
+      } else if (widget.timerActive) {
+        timer = Timer.periodic(const Duration(seconds: 1), (_) {
+          setState(() {
+            dateTimeNow = DateTime.now();
+          });
+        });
+      }
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  void dispose() {
+    timer.cancel();
+    super.dispose();
   }
 
   static String _padLeft2(Object object) {

@@ -15,13 +15,14 @@ import 'cube_face_widget.dart';
 class CubeWidget extends StatefulWidget {
   final Cube the_cube;
   final Function() onMove;
+  final Function() onEndMove;
 
   final Key cubeKey = const ValueKey("cube");
   final Key cubeTransitionKey = const ValueKey("cube");
   final Key nextCubeKey = const ValueKey("nextCube");
   final Key nextCubeTransitionKey = const ValueKey("nextCube");
 
-  const CubeWidget({Key? key, required this.the_cube, required this.onMove}) : super(key: key);
+  const CubeWidget({Key? key, required this.the_cube, required this.onMove, required this.onEndMove}) : super(key: key);
 
   @override
   _CubeWidgetState createState() => _CubeWidgetState();
@@ -152,6 +153,10 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
     return widget.the_cube.forecastAction(action);
   }
 
+  void _handleEndMove() {
+    widget.onEndMove();
+  }
+
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
@@ -168,6 +173,7 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
               isFrontFace: true,
               onAction: _handleSliceMove,
               onNextBlock: _getNextBlock,
+              onEndMove: _handleEndMove,
             ),
             builder: (BuildContext context, Widget? child) {
               Matrix4 transform = Matrix4.identity()..setEntry(3, 2, 0.003);
@@ -203,6 +209,7 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
                 isFrontFace: false,
                 onAction: _handleSliceMove,
                 onNextBlock: _getNextBlock,
+                onEndMove: _handleEndMove,
               ),
               builder: (BuildContext context, Widget? child) {
                 Matrix4 transform = Matrix4.identity()..setEntry(3, 2, 0.003);
