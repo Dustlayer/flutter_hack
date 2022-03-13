@@ -1,4 +1,4 @@
-import 'dart:collection';
+// import 'dart:collection';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -23,7 +23,7 @@ class Cube {
   }
 
   FaceView getFrontView() {
-    if (kDebugMode) print("GetFrontView");
+    // if (kDebugMode) print("GetFrontView");
     return FaceView(_getFaceAt(IVec.FRONT), mat);
   }
 
@@ -31,14 +31,14 @@ class Cube {
     IVec cubeAxis = mat.dotV(move.axis);
     IMat rot = IMat.rotate90(cubeAxis);
     mat = rot.dotM(mat);
-    _debugPrint();
+    // _debugPrint();
   }
 
   void slice(SliceMove move) {
     Face front = _getFaceAt(IVec.FRONT);
     IVec worldSliceAxis = move.axis;
     IVec worldSliceIndex = move.index;
-    if (kDebugMode) print("Slice: Front=$front, worldSliceAxis=$worldSliceAxis, worldSliceIndex=$worldSliceIndex");
+    // if (kDebugMode) print("Slice: Front=$front, worldSliceAxis=$worldSliceAxis, worldSliceIndex=$worldSliceIndex");
 
     // find first block on front face
     IVec worldBlockPos = worldSliceAxis + worldSliceIndex;
@@ -51,11 +51,11 @@ class Cube {
     IVec cubeFacePosition = mat.front;
 
     // todo: not needed, just debugging
-    Block first = block;
-    if (kDebugMode) {
-      print("Slice start: cubeAxis=$cubeSliceAxis, cubeIndex=$cubeSliceIndex, cubePosition=$cubeFacePosition");
-      print("\tface=${faces[cubeFacePosition]}, block=$block");
-    }
+    // Block first = block;
+    // if (kDebugMode) {
+    //   print("Slice start: cubeAxis=$cubeSliceAxis, cubeIndex=$cubeSliceIndex, cubePosition=$cubeFacePosition");
+    //   print("\tface=${faces[cubeFacePosition]}, block=$block");
+    // }
 
     // do slicing, cube has 4 faces -> slice 4x
     for (int i = 0; i < 4; i++) {
@@ -67,19 +67,19 @@ class Cube {
 
       // 2) push
       Face face = faces[cubeFacePosition]!;
-      if (kDebugMode) {
-        print("Slice $i: cubeAxis=$cubeSliceAxis, cubePosition=$cubeFacePosition");
-        print("\tface=$face, block=$block");
-      }
+      // if (kDebugMode) {
+      //   print("Slice $i: cubeAxis=$cubeSliceAxis, cubePosition=$cubeFacePosition");
+      //   print("\tface=$face, block=$block");
+      // }
       block = face.push(block, cubeSliceAxis, cubeSliceIndex);
     }
 
-    if (kDebugMode) {
-      print("Left over block: $block (should be $first)");
-      if (block != first) {
-        assert(false);
-      }
-    }
+    // if (kDebugMode) {
+    //   print("Left over block: $block (should be $first)");
+    //   if (block != first) {
+    //     assert(false);
+    //   }
+    // }
   }
 
   int solvedFaces() {
@@ -114,7 +114,7 @@ class Cube {
 
     Face face = faces[cubeFacePosition]!;
     block = face.predictPush(cubeSliceAxis, cubeSliceIndex);
-    if (kDebugMode) print("Predict slice: front: $front, face=$face, block=$block");
+    // if (kDebugMode) print("Predict slice: front: $front, face=$face, block=$block");
 
     return block;
   }
@@ -153,18 +153,18 @@ class Cube {
     shuffleCube(cube, nMovesShuffle);
 
     // check everything is alright once (in debug mode)
-    if (kDebugMode) {
-      Set<Block> seenBlocks = HashSet();
-
-      for (Face face in cube.faces.values) {
-        face.blocks.foreach((b) {
-          if (seenBlocks.contains(b)) {
-            assert(false);
-          }
-          seenBlocks.add(b);
-        });
-      }
-    }
+    // if (kDebugMode) {
+    //   Set<Block> seenBlocks = HashSet();
+    //
+    //   for (Face face in cube.faces.values) {
+    //     face.blocks.foreach((b) {
+    //       if (seenBlocks.contains(b)) {
+    //         assert(false);
+    //       }
+    //       seenBlocks.add(b);
+    //     });
+    //   }
+    // }
 
     return cube;
   }

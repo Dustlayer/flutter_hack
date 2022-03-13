@@ -28,9 +28,9 @@ class Grid<T> {
     int nx = normalizeX(x);
     int ny = normalizeY(y);
 
-    if (nx < 0 || ny < 0 || width <= nx || height <= ny) {
-      assert(false);
-    }
+    // if (nx < 0 || ny < 0 || width <= nx || height <= ny) {
+    //   assert(false);
+    // }
 
     return _data[nx][ny]!;
   }
@@ -39,9 +39,9 @@ class Grid<T> {
     int nx = normalizeX(x);
     int ny = normalizeY(y);
 
-    if (nx < 0 || ny < 0 || width <= nx || height <= ny) {
-      assert(false);
-    }
+    // if (nx < 0 || ny < 0 || width <= nx || height <= ny) {
+    //   assert(false);
+    // }
     _data[nx][ny] = value;
   }
 

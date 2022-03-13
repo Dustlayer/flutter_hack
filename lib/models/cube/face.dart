@@ -19,9 +19,9 @@ class Face {
     IMat matInv = mat.getTransposed();
     IVec localAt = matInv.dotV(at);
 
-    if (localAt.z != 0) {
-      assert(false);
-    }
+    // if (localAt.z != 0) {
+    //   assert(false);
+    // }
 
     return blocks.get(localAt.x, localAt.y);
   }
@@ -35,9 +35,9 @@ class Face {
     // do the actual slicing (move blocks along axis over once)
     for (int i = 0; i < kSize; i++) {
       IVec localBlockPosition = localAxis * (-kHalfSize + i) + localIndex;
-      if (localBlockPosition.z != 0) {
-        assert(false);
-      }
+      // if (localBlockPosition.z != 0) {
+      //   assert(false);
+      // }
       Block tmp = blocks.get(localBlockPosition.x, localBlockPosition.y);
       blocks.set(localBlockPosition.x, localBlockPosition.y, block);
       block = tmp;
@@ -54,9 +54,9 @@ class Face {
 
     // get the last block on the slice
     IVec localBlockPosition = localAxis * (-kHalfSize + (kSize - 1)) + localIndex;
-    if (localBlockPosition.z != 0) {
-      assert(false);
-    }
+    // if (localBlockPosition.z != 0) {
+    //   assert(false);
+    // }
     return blocks.get(localBlockPosition.x, localBlockPosition.y);
   }
 

@@ -8,11 +8,11 @@ class IVec {
   final int x, y, z;
 
   IVec(this.x, this.y, [this.z = 0]) {
-    if (!kUnchecked) {
-      if (2 < squareLength()) {
-        assert(false, "x + y + z > 2!");
-      }
-    }
+    // if (!kUnchecked) {
+    //   if (2 < squareLength()) {
+    //     assert(false, "x + y + z > 2!");
+    //   }
+    // }
   }
 
   static IVec get X => IVec(1, 0, 0);
@@ -29,7 +29,7 @@ class IVec {
   String asDirection() {
     // only works for 'single-directions' as of now
     // e.g. (1, 1, 0) which would be right-up, is not a thing yet
-    assert(squareLength() == 1);
+    // assert(squareLength() == 1);
     if (0 < x) return "Right";
     if (0 < y) return "Up";
     if (0 < z) return "Front";
@@ -133,11 +133,11 @@ class IMat {
   final IVec i, j, k; // each of these only has a single component set
 
   IMat.new(this.i, this.j, this.k) {
-    if (!kUnchecked) {
-      assert(i.squareLength() == 1, notAUnitVector('I'));
-      assert(j.squareLength() == 1, notAUnitVector('J'));
-      assert(k.squareLength() == 1, notAUnitVector('K'));
-    }
+    // if (!kUnchecked) {
+    //   assert(i.squareLength() == 1, notAUnitVector('I'));
+    //   assert(j.squareLength() == 1, notAUnitVector('J'));
+    //   assert(k.squareLength() == 1, notAUnitVector('K'));
+    // }
   }
 
   factory IMat.identity() {
@@ -185,7 +185,7 @@ class IMat {
 
   // Rotation matrix from axis and angle: https://en.wikipedia.org/wiki/Rotation_matrix#In_three_dimensions
   static IMat rotate90(IVec axis) {
-    assert(axis.squareLength() == 1, notAUnitVector("axis"));
+    // assert(axis.squareLength() == 1, notAUnitVector("axis"));
 
     // i' = (
     // cos(90) + x^2 * (1 - cos(90)),

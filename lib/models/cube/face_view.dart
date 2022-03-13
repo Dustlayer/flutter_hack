@@ -40,9 +40,9 @@ class FaceView {
     IMat faceMatInv = faceMat.getTransposed();
     IVec faceAt = faceMatInv.dotV(cubeAt);
 
-    if (faceAt.z != 0) {
-      assert(false);
-    }
+    // if (faceAt.z != 0) {
+    //   assert(false);
+    // }
 
     return face.blocks.get(faceAt.x, faceAt.y);
   }
