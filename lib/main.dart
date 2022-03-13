@@ -49,7 +49,7 @@ class MyApp extends StatelessWidget {
       routes: {
         PageRoutes.home: (context, state, data) => const HomeScreen(),
         PageRoutes.leaderboard: (context, state, data) => const LeaderboardScreen(),
-        PageRoutes.singleplayer: (context, state, data) => const PlaySingleplayerScreen(),
+        PageRoutes.singleplayer: (context, state, data) => const PlaySingleplayerScreen(1),
       },
     ),
     notFoundRedirectNamed: PageRoutes.home,

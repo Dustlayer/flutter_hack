@@ -11,7 +11,9 @@ import '../components/game_status_widget.dart';
 import '../models/keyboard_meta_keys_manager.dart';
 
 class PlaySingleplayerScreen extends StatefulWidget {
-  const PlaySingleplayerScreen({Key? key}) : super(key: key);
+  final int minFacesSolvedForVictory;
+
+  const PlaySingleplayerScreen(this.minFacesSolvedForVictory, {Key? key}) : super(key: key);
 
   @override
   _PlaySingleplayerScreenState createState() => _PlaySingleplayerScreenState();
@@ -23,7 +25,7 @@ void NoOp() {}
 class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with SingleTickerProviderStateMixin {
   late final FocusNode focus;
   late final FocusAttachment _nodeAttachment;
-  Cube cube = Cube.generate();
+  Cube cube = Cube.generate(100);
   // game stats for the leaderboard
   int _turnCounter = 0;
   DateTime dateTimeStart = DateTime.now();
@@ -62,7 +64,7 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
   }
 
   void _checkForVictory() {
-    if (false && _turnCounter > 10 && !_victorious) {
+    if (widget.minFacesSolvedForVictory <= cube.solvedFaces() && !_victorious) {
       // Victory
       setState(() {
         _victorious = true;

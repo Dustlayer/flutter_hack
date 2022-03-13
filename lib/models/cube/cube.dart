@@ -1,4 +1,9 @@
+import 'dart:collection';
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_hack/constants.dart';
 
 import 'package:flutter_hack/vector_math.dart';
 import 'package:flutter_hack/models/cube/rotation_move.dart';
@@ -33,7 +38,7 @@ class Cube {
     Face front = _getFaceAt(IVec.FRONT);
     IVec worldSliceAxis = move.axis;
     IVec worldSliceIndex = move.index;
-    if (kDebugMode) print("Slice: Front=$front, =$worldSliceAxis, sliceIndex:$worldSliceIndex");
+    if (kDebugMode) print("Slice: Front=$front, worldSliceAxis=$worldSliceAxis, worldSliceIndex=$worldSliceIndex");
 
     // find first block on front face
     IVec worldBlockPos = worldSliceAxis + worldSliceIndex;
@@ -77,6 +82,17 @@ class Cube {
     }
   }
 
+  int solvedFaces() {
+    int solved = 0;
+    for (Face f in faces.values) {
+      if (f.isSolved()) {
+        solved += 1;
+      }
+    }
+
+    return solved;
+  }
+
   Block predictSlice(SliceMove move) {
     Face front = _getFaceAt(IVec.FRONT);
     IVec worldSliceAxis = move.axis;
@@ -115,7 +131,7 @@ class Cube {
     return faces[mat.dotV(at)]!;
   }
 
-  static Cube generate() {
+  static Cube generate(int nMovesShuffle) {
     /*
      *     X
      *     🡡
@@ -125,15 +141,60 @@ class Cube {
      *
      */
     Map<IVec, Face> faces = {
-      IVec.X: Face.generate("R", IMat.rotate90(IVec.Y)),
-      -IVec.X: Face.generate("L", IMat.rotate90(-IVec.Y)),
-      IVec.Y: Face.generate("U", IMat.rotate90(-IVec.X)),
-      -IVec.Y: Face.generate("D", IMat.rotate90(IVec.X)),
-      IVec.Z: Face.generate("F", IMat.identity()),
-      -IVec.Z: Face.generate("B", IMat.rotate90(IVec.X).dotM(IMat.rotate90(IVec.X))),
+      IVec.X: Face.generate("R", IMat.rotate90(IVec.Y), Colors.green),
+      -IVec.X: Face.generate("L", IMat.rotate90(-IVec.Y), Colors.amber),
+      IVec.Y: Face.generate("U", IMat.rotate90(-IVec.X), Colors.cyan),
+      -IVec.Y: Face.generate("D", IMat.rotate90(IVec.X), Colors.deepPurple),
+      IVec.Z: Face.generate("F", IMat.identity(), Colors.deepOrange),
+      -IVec.Z: Face.generate("B", IMat.rotate90(IVec.X).dotM(IMat.rotate90(IVec.X)), Colors.pink),
     };
 
-    return Cube(faces);
+    Cube cube = Cube(faces);
+    shuffleCube(cube, nMovesShuffle);
+
+    // check everything is alright once (in debug mode)
+    if (kDebugMode) {
+      Set<Block> seenBlocks = HashSet();
+
+      for (Face face in cube.faces.values) {
+        face.blocks.foreach((b) {
+          if (seenBlocks.contains(b)) {
+            assert(false);
+          }
+          seenBlocks.add(b);
+        });
+      }
+    }
+
+    return cube;
+  }
+
+  static void shuffleCube(Cube cube, int nMoves) {
+    double pRotate = .3;
+    Random ra = Random();
+
+    List<RotationMove> rotationMoves = [
+      RotationMove.up(),
+      RotationMove.down(),
+      RotationMove.left(),
+      RotationMove.right(),
+    ];
+    List<SliceMove Function(int)> sliceMoves = [
+      (i) => SliceMove.up(i),
+      (i) => SliceMove.down(i),
+      (i) => SliceMove.left(i),
+      (i) => SliceMove.right(i),
+    ];
+
+    for (int i = 0; i < nMoves; i++) {
+      if (ra.nextDouble() <= pRotate) {
+        cube.rotate(rotationMoves[ra.nextInt(rotationMoves.length)]);
+      }
+      else {
+        int rawIndex = ra.nextInt(kSize);
+        cube.slice(sliceMoves[ra.nextInt(sliceMoves.length)](rawIndex));
+      }
+    }
   }
 
   // ----------------- //

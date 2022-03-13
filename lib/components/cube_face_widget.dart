@@ -307,14 +307,16 @@ class TestCubeTile extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border.all(),
           borderRadius: BorderRadius.circular(15),
-          color: Colors.lightBlue,
+          // color: Colors.lightBlue,
+          color: _block.color,
         ),
         alignment: Alignment.center,
-        child: Text(
-          _block.toString(),
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 35),
-        ),
+        child: Container(),
+        // child: Text(
+        //   _block.toString(),
+        //   textAlign: TextAlign.center,
+        //   style: const TextStyle(fontSize: 35),
+        // ),
       ),
     );
   }

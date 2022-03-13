@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_hack/vector_math.dart';
 import 'package:flutter_hack/constants.dart';
 
@@ -59,14 +60,19 @@ class Face {
     return blocks.get(localBlockPosition.x, localBlockPosition.y);
   }
 
-  static Face generate(String _dbgName, IMat mat, [bool vFlip = false]) {
+  bool isSolved() {
+    Color reference = blocks.get(0, 0).color;
+    return blocks.checkAll((b) => b.color == reference);
+  }
+
+  static Face generate(String _dbgName, IMat mat, Color color) {
     return Face(
       _dbgName,
       mat,
       Grid.generate(
         kSize,
         kSize,
-        (x, y) => Block("($x | $y)", _dbgName),
+        (x, y) => Block("($x | $y)", _dbgName, color),
       ),
     );
   }
