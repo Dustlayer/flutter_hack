@@ -128,7 +128,7 @@ class IndicatorContainer extends StatelessWidget {
             padding: const EdgeInsets.all(15),
             child: AutoSizeText(
               labelText,
-              style: Theme.of(context).primaryTextTheme.labelMedium?.copyWith(fontSize: 200),
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(fontSize: 200),
             ),
           ),
         ),

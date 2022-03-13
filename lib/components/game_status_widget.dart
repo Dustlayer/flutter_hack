@@ -17,7 +17,7 @@ class GameStatus extends StatefulWidget {
 
 class _GameStatusState extends State<GameStatus> {
   DateTime dateTimeNow = DateTime.now();
-  late final Timer timer;
+  Timer? timer;
 
   @override
   void initState() {
@@ -36,7 +36,7 @@ class _GameStatusState extends State<GameStatus> {
     // enable or disable timer if widget is updated
     if (widget.timerActive != oldWidget.timerActive) {
       if (!widget.timerActive) {
-        timer.cancel();
+        timer?.cancel();
       } else if (widget.timerActive) {
         timer = Timer.periodic(const Duration(seconds: 1), (_) {
           setState(() {
@@ -50,7 +50,10 @@ class _GameStatusState extends State<GameStatus> {
 
   @override
   void dispose() {
-    timer.cancel();
+    if (timer != null && timer!.isActive) {
+      // timer may be stopped already if game was finished successfully
+      timer!.cancel();
+    }
     super.dispose();
   }
 
@@ -69,26 +72,36 @@ class _GameStatusState extends State<GameStatus> {
   Widget build(BuildContext context) {
     Duration diff = dateTimeNow.difference(widget.dateTimeStart);
     return SizedBox.expand(
-      child: Padding(
-        padding: const EdgeInsets.all(150),
-        child: Column(
-          children: [
-            Expanded(
-              child: AutoSizeText(
-                _durationToString(diff),
-                wrapWords: false,
-                style: Theme.of(context).primaryTextTheme.labelMedium?.copyWith(fontSize: 200),
-              ),
+      child: Row(
+        children: [
+          const Spacer(flex: 1),
+          Expanded(
+            flex: 8,
+            child: Column(
+              children: [
+                const Spacer(flex: 2),
+                Expanded(
+                  flex: 3,
+                  child: AutoSizeText(
+                    _durationToString(diff),
+                    wrapWords: false,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(fontSize: 200),
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: AutoSizeText(
+                    widget.turnsCount.toString() + " turns",
+                    wrapWords: false,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(fontSize: 200),
+                  ),
+                ),
+                const Spacer(flex: 2),
+              ],
             ),
-            Expanded(
-              child: AutoSizeText(
-                widget.turnsCount.toString() + " turns",
-                wrapWords: false,
-                style: Theme.of(context).primaryTextTheme.labelMedium?.copyWith(fontSize: 200),
-              ),
-            ),
-          ],
-        ),
+          ),
+          const Spacer(flex: 1),
+        ],
       ),
     );
   }

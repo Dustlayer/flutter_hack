@@ -92,16 +92,12 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
 
     SliceMove? move;
     if (manager.isShiftPressed && scrolledUp) {
-      // actionQueue.add(CubeActionCall(CubeAction.turnRowRight, rowIndex));
-      move = SliceMove.left(rowIndex);
-    } else if (manager.isShiftPressed && !scrolledUp) {
-      // actionQueue.add(CubeActionCall(CubeAction.turnRowLeft, rowIndex));
       move = SliceMove.right(rowIndex);
+    } else if (manager.isShiftPressed && !scrolledUp) {
+      move = SliceMove.left(rowIndex);
     } else if (!manager.isShiftPressed && scrolledUp) {
-      // actionQueue.add(CubeActionCall(CubeAction.turnColumnUp, columnIndex));
       move = SliceMove.down(columnIndex);
     } else if (!manager.isShiftPressed && !scrolledUp) {
-      // actionQueue.add(CubeActionCall(CubeAction.turnColumnDown, columnIndex));
       move = SliceMove.up(columnIndex);
     }
 

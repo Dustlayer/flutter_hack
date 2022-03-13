@@ -4,15 +4,13 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hack/constants.dart';
-
-import 'package:flutter_hack/vector_math.dart';
 import 'package:flutter_hack/models/cube/rotation_move.dart';
 import 'package:flutter_hack/models/cube/slice_move.dart';
+import 'package:flutter_hack/vector_math.dart';
 
-import 'face.dart';
 import 'block.dart';
+import 'face.dart';
 import 'face_view.dart';
-
 
 class Cube {
   IMat mat = IMat.identity();
@@ -189,8 +187,7 @@ class Cube {
     for (int i = 0; i < nMoves; i++) {
       if (ra.nextDouble() <= pRotate) {
         cube.rotate(rotationMoves[ra.nextInt(rotationMoves.length)]);
-      }
-      else {
+      } else {
         int rawIndex = ra.nextInt(kSize);
         cube.slice(sliceMoves[ra.nextInt(sliceMoves.length)](rawIndex));
       }

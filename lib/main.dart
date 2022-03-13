@@ -66,7 +66,11 @@ class MyApp extends StatelessWidget {
         title: 'Flutter Puzzle Hack',
         theme: ThemeData(
           primarySwatch: Colors.green,
-          primaryTextTheme: const TextTheme(labelMedium: TextStyle(color: Colors.greenAccent)),
+          textTheme: const TextTheme(
+            labelMedium: TextStyle(color: Colors.greenAccent),
+            bodyLarge: TextStyle(color: Colors.white, fontSize: 45),
+            titleMedium: TextStyle(color: Colors.green, fontSize: 35),
+          ),
         ),
         routerDelegate: routerDelegate,
         routeInformationParser: BeamerParser(),
