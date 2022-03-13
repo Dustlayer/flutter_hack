@@ -2,17 +2,20 @@ import 'dart:math';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hack/constants.dart';
+import 'package:flutter_hack/models/cube/block.dart';
+import 'package:flutter_hack/models/cube/face_view.dart';
+import 'package:flutter_hack/models/cube/slice_move.dart';
+import 'package:flutter_hack/models/keyboard_meta_keys_manager.dart';
+import 'package:flutter_hack/vector_math.dart';
 import 'package:provider/provider.dart';
 
-import '../models/cube.dart';
-import '../models/keyboard_meta_keys_manager.dart';
-
 class CubeFace extends StatefulWidget {
-  final Face face;
+  final FaceView face;
   final bool isFrontFace;
-  final void Function(CubeActionCall) onAction;
+  final void Function(SliceMove) onAction;
   final void Function() onEndMove;
-  final Block Function(CubeActionCall) onNextBlock;
+  final Block Function(SliceMove) onNextBlock;
 
   const CubeFace(
       {Key? key,
@@ -36,9 +39,9 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
     parent: _controller,
     curve: Curves.easeInOutQuart,
   );
-  List<CubeActionCall> actionQueue = List.empty(growable: true);
+  List<SliceMove> actionQueue = List.empty(growable: true);
   Block? nextBlock;
-  CubeActionCall? nextAction;
+  SliceMove? nextAction;
 
   @override
   void initState() {
@@ -48,7 +51,7 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
       if (status == AnimationStatus.completed && actionQueue.isNotEmpty) {
         // update cube object and remove action from queue
         setState(() {
-          CubeActionCall call = actionQueue.removeAt(0);
+          SliceMove call = actionQueue.removeAt(0);
           _controller.reset();
           // update duration for next animation,
           // otherwise duration stays the same from _handleScroll
@@ -87,14 +90,23 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
       return;
     }
 
+    SliceMove? move;
     if (manager.isShiftPressed && scrolledUp) {
-      actionQueue.add(CubeActionCall(CubeAction.turnRowRight, rowIndex));
+      // actionQueue.add(CubeActionCall(CubeAction.turnRowRight, rowIndex));
+      move = SliceMove.left(rowIndex);
     } else if (manager.isShiftPressed && !scrolledUp) {
-      actionQueue.add(CubeActionCall(CubeAction.turnRowLeft, rowIndex));
+      // actionQueue.add(CubeActionCall(CubeAction.turnRowLeft, rowIndex));
+      move = SliceMove.right(rowIndex);
     } else if (!manager.isShiftPressed && scrolledUp) {
-      actionQueue.add(CubeActionCall(CubeAction.turnColumnUp, columnIndex));
+      // actionQueue.add(CubeActionCall(CubeAction.turnColumnUp, columnIndex));
+      move = SliceMove.down(columnIndex);
     } else if (!manager.isShiftPressed && !scrolledUp) {
-      actionQueue.add(CubeActionCall(CubeAction.turnColumnDown, columnIndex));
+      // actionQueue.add(CubeActionCall(CubeAction.turnColumnDown, columnIndex));
+      move = SliceMove.up(columnIndex);
+    }
+
+    if (move != null) {
+      actionQueue.add(move);
     }
 
     // start animation if queue was empty before
@@ -111,56 +123,48 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
     }
   }
 
-  int _getNewBlockStartRowIndex(CubeActionCall call) {
-    switch (call.action) {
-      case CubeAction.turnColumnUp:
-        return -1;
-      case CubeAction.turnColumnDown:
-        return kSIZE;
-      case CubeAction.turnRowLeft:
-        return call.index;
-      case CubeAction.turnRowRight:
-        return call.index;
-      default:
-        throw kFORKED;
+  int _getNewBlockStartRowIndex(SliceMove move) {
+    if (move.axis == IVec.DOWN) {
+      return -1;
+    } else if (move.axis == IVec.UP) {
+      return kSize;
+    } else if (move.axis == IVec.RIGHT || move.axis == IVec.LEFT) {
+      return move.rawIndex;
     }
+    throw kForked;
   }
 
-  int _getNewBlockStartColumnIndex(CubeActionCall call) {
-    switch (call.action) {
-      case CubeAction.turnColumnUp:
-        return call.index;
-      case CubeAction.turnColumnDown:
-        return call.index;
-      case CubeAction.turnRowLeft:
-        return kSIZE;
-      case CubeAction.turnRowRight:
-        return -1;
-      default:
-        throw kFORKED;
+  int _getNewBlockStartColumnIndex(SliceMove move) {
+    if (move.axis == IVec.RIGHT) {
+      return -1;
+    } else if (move.axis == IVec.LEFT) {
+      return kSize;
+    } else if (move.axis == IVec.UP || move.axis == IVec.DOWN) {
+      return move.rawIndex;
     }
+    throw kForked;
   }
 
-  int _getNextRowIndex(CubeActionCall call, int indexRow, int indexColumn) {
+  int _getNextRowIndex(SliceMove call, int indexRow, int indexColumn) {
     int result = indexRow;
-    if ([CubeAction.turnColumnUp, CubeAction.turnColumnDown].contains(call.action) && call.index == indexColumn) {
-      result = call.action == CubeAction.turnColumnUp ? indexRow + 1 : indexRow - 1;
+    if ((call.axis == IVec.UP || call.axis == IVec.DOWN) && call.rawIndex == indexColumn) {
+      result = call.axis == IVec.DOWN ? indexRow + 1 : indexRow - 1;
     }
     return result;
   }
 
-  int _getNextColumnIndex(CubeActionCall call, int indexRow, int indexColumn) {
+  int _getNextColumnIndex(SliceMove call, int indexRow, int indexColumn) {
     int result = indexColumn;
-    if ([CubeAction.turnRowLeft, CubeAction.turnRowRight].contains(call.action) && call.index == indexRow) {
-      result = call.action == CubeAction.turnRowRight ? indexColumn + 1 : indexColumn - 1;
+    if ((call.axis == IVec.RIGHT || call.axis == IVec.LEFT) && call.rawIndex == indexRow) {
+      result = call.axis == IVec.RIGHT ? indexColumn + 1 : indexColumn - 1;
     }
     return result;
   }
 
   @override
   Widget build(BuildContext context) {
-    const int cubeWidth = kSIZE;
-    const int cubeHeight = kSIZE;
+    const int cubeWidth = kSize;
+    const int cubeHeight = kSize;
 
     if (actionQueue.isNotEmpty) {
       nextAction = actionQueue[0];
@@ -187,7 +191,7 @@ class _CubeFaceState extends State<CubeFace> with TickerProviderStateMixin {
                 (index) {
                   final int indexRow = index ~/ cubeWidth;
                   final int indexColumn = index % cubeWidth;
-                  final Block block = widget.face.blocks[indexColumn][indexRow];
+                  final Block block = widget.face.getBlockAt(indexColumn, indexRow);
                   int nextIndexRow = indexRow;
                   int nextIndexColumn = indexColumn;
                   if (nextBlock != null) {
@@ -307,7 +311,7 @@ class TestCubeTile extends StatelessWidget {
         ),
         alignment: Alignment.center,
         child: Text(
-          _block.id,
+          _block.toString(),
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 35),
         ),

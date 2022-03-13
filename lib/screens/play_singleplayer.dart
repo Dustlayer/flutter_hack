@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hack/components/back_widget.dart';
 import 'package:flutter_hack/components/keyboard_indicator.dart';
 import 'package:flutter_hack/components/victory_widget.dart';
-import 'package:flutter_hack/models/cube.dart';
+import 'package:flutter_hack/models/cube/cube.dart';
 import 'package:provider/provider.dart';
 
 import '../components/cube_widget.dart';
@@ -62,7 +62,7 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
   }
 
   void _checkForVictory() {
-    if (_turnCounter > 10 && !_victorious) {
+    if (false && _turnCounter > 10 && !_victorious) {
       // Victory
       setState(() {
         _victorious = true;
@@ -99,7 +99,7 @@ class _PlaySingleplayerScreenState extends State<PlaySingleplayerScreen> with Si
                       flex: 1,
                       child: CubeWidget(
                         key: ObjectKey(cube),
-                        the_cube: cube,
+                        cube: cube,
                         onMove: _handleMove,
                         onEndMove: _checkForVictory,
                       ),

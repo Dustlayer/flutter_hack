@@ -6,14 +6,18 @@ import 'dart:math';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hack/models/cube.dart';
+import 'package:flutter_hack/models/cube/block.dart';
+import 'package:flutter_hack/models/cube/cube.dart';
+import 'package:flutter_hack/models/cube/face_view.dart';
+import 'package:flutter_hack/models/cube/rotation_move.dart';
+import 'package:flutter_hack/models/cube/slice_move.dart';
 import 'package:flutter_hack/models/keyboard_meta_keys_manager.dart';
 import 'package:provider/provider.dart';
 
 import 'cube_face_widget.dart';
 
 class CubeWidget extends StatefulWidget {
-  final Cube the_cube;
+  final Cube cube;
   final Function() onMove;
   final Function() onEndMove;
 
@@ -22,7 +26,7 @@ class CubeWidget extends StatefulWidget {
   final Key nextCubeKey = const ValueKey("nextCube");
   final Key nextCubeTransitionKey = const ValueKey("nextCube");
 
-  const CubeWidget({Key? key, required this.the_cube, required this.onMove, required this.onEndMove}) : super(key: key);
+  const CubeWidget({Key? key, required this.cube, required this.onMove, required this.onEndMove}) : super(key: key);
 
   @override
   _CubeWidgetState createState() => _CubeWidgetState();
@@ -33,13 +37,14 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
     vsync: this,
     duration: const Duration(milliseconds: 500),
   );
-  late Face currentFace;
-  Face? nextFace;
+  late FaceView currentFace;
+  FaceView? nextFace;
+  RotationMove? move;
 
   int _turnYDirection = 0;
   int _turnXDirection = 0;
 
-  // values will be overriden when animation starts
+  // values will be overwritten when animation starts
   FractionalOffset _frontAnimationAlignment = FractionalOffset.centerRight;
   FractionalOffset _nextAnimationAlignment = FractionalOffset.centerLeft;
 
@@ -50,7 +55,8 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
 
   void _rotateToRight() {
     setState(() {
-      nextFace = widget.the_cube.rotateLeft();
+      move = RotationMove.right();
+      nextFace = widget.cube.predictRotation(move!);
 
       _turnYDirection = 0;
       _turnXDirection = -1;
@@ -62,7 +68,8 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
 
   void _rotateToLeft() {
     setState(() {
-      nextFace = widget.the_cube.rotateRight();
+      move = RotationMove.left();
+      nextFace = widget.cube.predictRotation(move!);
       _turnYDirection = 0;
       _turnXDirection = 1;
       _frontAnimationAlignment = FractionalOffset.centerLeft;
@@ -73,7 +80,8 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
 
   void _rotateToTop() {
     setState(() {
-      nextFace = widget.the_cube.rotateDown();
+      move = RotationMove.up();
+      nextFace = widget.cube.predictRotation(move!);
       _turnYDirection = -1;
       _turnXDirection = 0;
       _frontAnimationAlignment = FractionalOffset.topCenter;
@@ -84,7 +92,8 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
 
   void _rotateToBottom() {
     setState(() {
-      nextFace = widget.the_cube.rotateUp();
+      move = RotationMove.down();
+      nextFace = widget.cube.predictRotation(move!);
       _turnYDirection = 1;
       _turnXDirection = 0;
       _frontAnimationAlignment = FractionalOffset.bottomCenter;
@@ -95,17 +104,19 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
 
   @override
   void initState() {
-    currentFace = widget.the_cube.front;
+    currentFace = widget.cube.getFrontView();
     animation.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         setState(() {
           // set widget.cube via parent
-          currentFace = nextFace!;
+          widget.cube.rotate(move!);
+          currentFace = widget.cube.getFrontView();
           nextFace = null;
 
           // set data according to the desired state after animation
           _turnYDirection = 0;
           _turnXDirection = 0;
+
           _controller.reset();
         });
       }
@@ -144,13 +155,13 @@ class _CubeWidgetState extends State<CubeWidget> with SingleTickerProviderStateM
     }
   }
 
-  void _handleSliceMove(CubeActionCall action) {
+  void _handleSliceMove(SliceMove move) {
     widget.onMove();
-    widget.the_cube.executeCubeAction(action);
+    widget.cube.slice(move);
   }
 
-  Block _getNextBlock(CubeActionCall action) {
-    return widget.the_cube.forecastAction(action);
+  Block _getNextBlock(SliceMove move) {
+    return widget.cube.predictSlice(move);
   }
 
   void _handleEndMove() {
